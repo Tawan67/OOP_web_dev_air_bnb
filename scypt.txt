@@ -1,0 +1,194 @@
+classDiagram
+    class ControlSystem{
+        -List Booking
+        -List Member
+        -List Host
+        -List Accommadation
+        -balance
+        +search_user_by_id()
+        +search_host_by_id()
+        +search_booking_by_id()
+        +search_accommodation_by_id()
+        +search_accom_detail(accom_id)
+        +search_host_by_accom(Accom)
+    }
+    
+    class User{
+        -user_id
+        -name
+        -email
+        -password
+        -
+        +login()
+    }
+
+    class Member{
+        -phone_num
+        -bookinng_history
+        -List coupon_pocket
+        -my_payment
+        -age
+        +booking_some_accom()
+    }
+
+    class Coupon{
+        -expiration_date
+        -persen_discount
+        -campaign
+        -check_campaingn()
+    }
+
+    class Host{
+        -phone_num
+        -List my_accomadation
+        -my_payment
+        -age
+        +add_accom()
+        +get_host_name()
+        +get_details()
+    
+    }
+    
+    class Admin{
+        +approve_host()
+    }
+ 
+
+
+    class Accommadation{
+        -address
+        -lat_lon
+        -List accom_picture
+        -List calendar
+        -host_name 
+        -price_per_night
+        +cal_price()
+        +get_info()
+        +get_accom_details()
+    }
+    class  House {
+    }
+
+    class Hotel{
+        List room
+        +add_room()
+        -del_room()
+    }
+  
+    class Room{
+        -room_id
+        -holtel_name
+        -room_number
+        -floor_num
+    }
+
+    class Booking{
+        -booking_id
+        -accommadation
+        -date
+        -amount
+        -guess_amount
+        -bookinfg_status
+        -member_id
+        -payment
+        -paymentmethod
+        +update()
+
+    }
+
+    class PaymentMethod{
+        -bank_account
+        -user
+        -balance
+        +update_balance()
+    }
+
+    
+
+    class Card{
+        -card_id
+        -password
+    }
+    class Credit{
+        -point
+    }
+
+    class Debit{
+
+    }
+
+    class Bank{
+
+    }
+    class Calendar{
+        -month
+        -List booked_date
+        -update_date()
+        +get_calendar()
+        -get_non_avalible_days()
+    }
+
+    
+
+    class Review{
+        -rating
+        -user
+        -message
+        +get_info()
+    }
+    
+
+    %% class Conversation{
+
+    %% }
+
+    %% class Message{
+
+    %% }
+
+    class PaymentPeriod{
+        -user_pay_med
+        -period
+        -interest
+        -pay_on_period()
+
+    }
+
+    User <|-- Member
+    User <|-- Admin
+    User <|-- Host
+
+    PaymentMethod <|-- Card
+    PaymentMethod <|-- Bank
+    Card <|-- Credit
+    Card <|-- Debit
+
+
+    Booking -- Payment
+
+    Member --> PaymentMethod
+    Host --> PaymentMethod
+    ControlSystem --> PaymentMethod
+    Review --> Member
+    Accommadation o-- Review
+
+
+    Host o-- Accommadation
+    ControlSystem o-- User
+    %% Conversation o-- Message
+    Accommadation <|-- Hotel
+    Accommadation <|-- House
+    Location <-- Accommadation
+    ControlSystem o-- Booking
+    Payment o-- PaymentPeriod
+%%    Message --> User
+   Room --o Hotel
+   Calendar --o Accommadation
+   Coupon --o Member
+%%    Order o-- Booking
+    Booking --> Accommadation
+    Booking --> Member
+    Payment --> PaymentMethod
+    Accommadation --o ControlSystem
+
+

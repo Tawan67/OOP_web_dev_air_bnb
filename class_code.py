@@ -6,31 +6,41 @@ class ControlSystem:
 class User:
     count_id = 0
 
-    def __init__(self, id, name, phone_num, age):
+    def __init__(self, id, name, email, password):
         self.__user_id = id
         self.__user_name = name
-        self.__user_phone_num = phone_num
-        self.__user_age = age
+        self.__email = email
+        self.__password = password
         self.count_id += 1
     pass
 
 
 class Member(User):
-    def __init__(self, id, name, phone_num, age, payment_med=None):
-        super().__init__(id, name, phone_num, age)
-        self.__pay_med = payment_med
+    def __init__(self, id, name, email, password, phone_num, age):
+        super().__init__(id, name, email, password)
+        self.__phone_num = phone_num
+        self.__age = age
+        self.__pay_med = None
+        self.__my_coupon = []
     pass
 
 
 class Host(User):
-    def __init__(self, id, name, phone_num, age, payment_med):
-        super().__init__(id, name, phone_num, age)
-        self.__pay_med = payment_med
+    def __init__(self, id, name, email, password, phone_num, age):
+        super().__init__(id, name, email, password)
+        self.__phone_num = phone_num
+        self.__age = age
+        self.__pay_med = None
+        self.__my_acomadation = []
+    pass
 
+
+class Accomadation:
     pass
 
 
 class Booking:
+
     pass
 
 
@@ -55,10 +65,6 @@ class Credit(Card):
 
 
 class Debit(Card):
-    pass
-
-
-class Accomadation:
     pass
 
 
