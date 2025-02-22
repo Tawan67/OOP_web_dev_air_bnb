@@ -36,15 +36,72 @@ class Host(User):
 
 
 class Accomadation:
+    def __init__(self, name, address):
+        self.__acc_name = name
+        self.__address = address
+        self.__accom_pic = []
+        pass
     pass
 
 
-class Booking:
+class House(Accomadation):
+    def __init__(self, name, address, price):
+        super().__init__(name, address)
+        self.__price = price
+        self.__my_calendar = []
+    pass
 
+
+class Hotel(Accomadation):
+    def __init__(self, name, address):
+        super().__init__(name, address)
+        self.__rooms = []
+
+    def add_room(self):
+        pass
+
+
+class Room:
+    def __init__(self, id, floor, price):
+        self.__room_id = id
+        self.__room_floor = floor
+        self.__price_per_day = price
+        self.__calendar = []
+        pass
+
+
+class Booking:
+    count = 0
+
+    def __init__(self, accom, date, amount, guess, member_id, payment, payment_med):
+        self.__booking_id = self.count
+        self.__accomadation = accom
+        self.__date = date
+        self.__amount = amount
+        self.__guess_amount = guess
+        self.__booking_status = False
+        self.__member_id = member_id
+        self.__payment = payment
+        self.__pay_med = payment_med
+        pass
+
+    def update(self):
+        pass
     pass
 
 
 class Payment:
+    def __init__(self, period, pay_med):
+        self.__status = False
+        self.__periods = period
+        self.pay_med = pay_med
+        pass
+    pass
+
+
+class Period:
+    def __init__(self):
+        pass
     pass
 
 
