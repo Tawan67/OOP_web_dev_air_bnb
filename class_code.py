@@ -83,6 +83,7 @@ class Booking:
         self.__member_id = member_id
         self.__payment = payment
         self.__pay_med = payment_med
+        self.count += 1
         pass
 
     def update(self):
@@ -91,39 +92,89 @@ class Booking:
 
 
 class Payment:
-    def __init__(self, period, pay_med):
+    def __init__(self, period, pay_med, id):
         self.__status = False
         self.__periods = period
-        self.pay_med = pay_med
+        self.__pay_med = pay_med
+        self.__pay_id = id
+        pass
+
+    def pay_time(self):
         pass
     pass
 
 
 class Period:
-    def __init__(self):
+    def __init__(self, price, date):
+        self.__status = False
+        self.__price = price
+        self.__date = date
+        pass
+
+    def update_status(self):
+        new_status = not (self.__status)
+        self.__status = new_status
+    pass
+
+    def get_price(self):
+        return self.__price
+
+    def check_date(self, date_check):
+        if self.__date == date_check:
+            return True
+        return False
+
+
+class PaymentMethod:
+    def __init__(self, bank, user, balance):
+        self.__bank_acc = bank
+        self.__owner = user
+        self.__ballance = balance
         pass
     pass
 
 
-class PaymentMethod:
+def pay(self, pray_tang):
     pass
 
 
 class Bank(PaymentMethod):
+    def __init__(self, bank, user, balance):
+        super().__init__(bank, user, balance)
     pass
 
 
 class Card(PaymentMethod):
+    def __init__(self, bank, user, balance, id, password):
+        super().__init__(bank, user, balance)
+        self.__card_id = id
+        self.__card_password = password
     pass
 
 
 class Credit(Card):
+    def __init__(self, bank, user, balance, id, password, point=0):
+        super().__init__(bank, user, balance, id, password)
+        self.__credit_point = point
     pass
 
 
 class Debit(Card):
+    def __init__(self, bank, user, balance, id, password):
+        super().__init__(bank, user, balance, id, password)
     pass
 
 
 class Caledar:
+    def __init__(self, month, year):
+        self.__month = month
+        self.__year = year
+        self.__booked_date = []
+        pass
+
+    def get_calendar(self):
+        pass
+
+    def update_date(self, date):
+        pass
     pass
