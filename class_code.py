@@ -35,7 +35,7 @@ class Host(User):
     pass
 
 
-class Accomadation:
+class Accomodation:
     def __init__(self, name, address):
         self.__acc_name = name
         self.__address = address
@@ -44,7 +44,7 @@ class Accomadation:
     pass
 
 
-class House(Accomadation):
+class House(Accomodation):
     def __init__(self, name, address, price):
         super().__init__(name, address)
         self.__price = price
@@ -52,7 +52,7 @@ class House(Accomadation):
     pass
 
 
-class Hotel(Accomadation):
+class Hotel(Accomodation):
     def __init__(self, name, address):
         super().__init__(name, address)
         self.__rooms = []
