@@ -6,7 +6,6 @@ class ControlSystem:
         self.__accommodation_list = []
         self.__paymentmethod = None
         self.__balance = None
-# dd
 
     @property
     def get_booking_list(self):
@@ -303,8 +302,8 @@ class Accommodation:
 
 
 class Hotel(Accommodation):
-    def __init__(self, name, address):
-        super().__init__(name, address)
+    def __init__(self, name, address, info):
+        super().__init__(name, address, info)
         self.__rooms = []
 
     def add_room(self, room):
@@ -327,8 +326,8 @@ class Room:
 
 
 class House(Accommodation):
-    def __init__(self, name, address, price):
-        super().__init__(name, address)
+    def __init__(self, name, address, info, price):
+        super().__init__(name, address, info)
         self.__price = price
         self.__booked_date = []
 
@@ -525,9 +524,9 @@ c = Member("Bat", "Bat@gmail.com", "1594", "754819624", 20)
 
 d = Host("MMMMM", "MMMMM@gmail.com", "1234", "545678951", 50)
 
-home1 = House("bannnn", "55 kokk road", 500)
-home2 = House("sweethome", "407 kokk road", 1500)
-home3 = House("whatislove", "330 kokk road", 20000)
+home1 = House("bannnn", "55 kokk road", "ee", 500)
+home2 = House("sweethome", "407 kokk road", "ee", 1500)
+home3 = House("whatislove", "330 kokk road", "eee", 20000)
 
 controlpaymentmethod = Debit("1", controlsystem, 5000000, "54321")
 controlsystem.update_payment_method(controlpaymentmethod)
@@ -541,3 +540,5 @@ print()
 print(home1.get_id, home1.get_acc_name, home1.get_address, home1.get_price)
 print(home2.get_id, home2.get_acc_name, home2.get_address, home2.get_price)
 print(home3.get_id, home3.get_acc_name, home3.get_address, home3.get_price)
+
+print("End")
