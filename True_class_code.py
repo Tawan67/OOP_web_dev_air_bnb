@@ -1,3 +1,8 @@
+import math
+from datetime import datetime
+from dateutil.relativedelta import relativedelta  # to add a mount in period
+
+
 class ControlSystem:
     def __init__(self):
         self.__booking_list = []
@@ -79,10 +84,12 @@ class ControlSystem:
         # for show all coupon on UI
         pass
 
-    def create_payment(self, key,):
+    def create_payment(self, key: str, details: list, booking_id):
+        booking_item = self.search_booking_by_id(booking_id=booking_id)
+        payment = booking_item.create_payment(key, details)
         pass  # call Booking to create
 
-    def create_payment_med(self):
+    def create_payment_med(self, key):
         # cal member to create and put on Booking after create
         pass
 
@@ -431,11 +438,18 @@ class Booking:
         self.__booking_status = input1
         return "Succees"
 
-    def update_payment(self, input1):
+    def update_payment(self, payment: 'Payment'):
+        self.__payment = payment
         pass
 
-    def update_pay_med(self, input1):
+    def update_pay_med(self, pay_med: 'PaymentMethod'):
+        self.__pay_med = pay_med
+
         pass
+
+    def create_payment(self, price, period, paymed):
+        payment = Payment(period=period, pay_med=paymed, price=price)
+        return payment
 
 
 class BookedDate:
@@ -457,20 +471,38 @@ class Payment:
         self.__pay_med = pay_med ===== ช่องทางการจ่าย
         self.__pay_id = id ===== ไอดีไว้หา Payment
     '''
+    count = 1
 
-    def __init__(self, period, pay_med, id):
+    def __init__(self, period, pay_med, price):
         self.__status = False
-        self.__period_list = period
+        self.__period_list = []
         self.__pay_med = pay_med
-        self.__pay_id = id
+        self.__pay_id = Payment.count
+        self.__interest = 5/100
+        Payment.count += 1
+        total = self.cal_interest(price, period)
+        self.create_period(total, period)
         pass
 
-    def cal_price():
+    def cal_interest(self, price, period):
+        total_price = price*pow((1+((self.__interest/12)*period)), period)
+        total_price = math.ceil(total_price)
+        return total_price
         pass
 
     def pay_time(self):
+
         pass
 
+    def create_period(self, price, period):
+        price_per_time = math.ceil(price/period)
+        start_date = datetime.now()
+        for p in range(period):
+            new_date = start_date + relativedelta(months=p)
+            pay_part = Period(price=price_per_time, date=start_date)
+            self.__period_list.append(pay_part)
+        return "Success"
+        pass
     '''
         self.__status = False ===== ก้อนนี้จ่ายยัง
         self.__price = price ===== เงินที่ต้องจ่ายต่อรอบ
@@ -552,7 +584,7 @@ class Coupon:
         return result
 
     def check_expirat(self):
-        from datetime import datetime
+
         if self.__expiration > datetime.now():
             return True
         return False
