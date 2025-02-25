@@ -1,5 +1,4 @@
 class ControlSystem:
-    # test git
     def __init__(self):
         self.__booking_list = []
         self.__member_list = []
@@ -27,6 +26,9 @@ class ControlSystem:
     def update_payment_method(self, input1):
         self.__paymentmethod = input1
         return "Success"
+
+    def search(self, where, checkin, chekcout, adult, children, pet):
+        pass
 
     def search_member_by_id(self, id):
         for member in self.get_member_list:
@@ -148,6 +150,9 @@ class Host(User):
     def get_age(self):
         return self.__age
 
+    @property
+    def get_host_name(self):
+        return self.__user_name
 
 class Admin(User):
     def __init__(self, name, email, password):
@@ -177,6 +182,9 @@ class Accommodation:
         return "Success"
 
     def update_calendar(self):
+        pass
+
+    def calculate(self, adult, children, pet):
         pass
 
     @property
