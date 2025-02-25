@@ -1,5 +1,4 @@
 class ControlSystem:
-    # test git
     def __init__(self):
         self.__booking_list = []
         self.__member_list = []
@@ -27,36 +26,6 @@ class ControlSystem:
     def update_payment_method(self, input1):
         self.__paymentmethod = input1
         return "Success"
-
-    def search_accom_by_id(self, accom_id):
-        pass
-
-    def create_booking(self):
-        pass
-
-    def create_account(self):
-        pass
-
-    def cal_price_in_accom(self, accom_id, guest):
-        pass  # call func in Accomodation to cal total price
-
-    def search_user_by_id(self, user_id):
-        pass  # search for check if user want to sign up
-
-    def search_coupon_by_user_id(self, user_id):
-        # for show all coupon on UI
-        pass
-
-    def create_payment(self):
-        pass  # call Booking to create
-
-    def create_payment_med(self):
-        # cal member to create and put on Booking after create
-        pass
-
-    def update_booking_pay(Booking, Payment, PaymentMethod):
-        # to put payment and pay_med into Booking
-        pass
 
     def search_member_by_id(self, id):
         for member in self.get_member_list:
@@ -97,6 +66,15 @@ class ControlSystem:
         pass
 
     def noti_host(self):
+        pass
+
+    def search_accom_detail(self, accom_id):
+        pass
+
+    def search_accomodation_by_id(self, accom_id):
+        pass
+
+    def search_host_by_accom(self, Accom):
         pass
 
 
@@ -182,6 +160,10 @@ class Host(User):
     def get_age(self):
         return self.__age
 
+    @property
+    def get_host_name(self):
+        return self.__user_name
+
 
 class Admin(User):
     def __init__(self, name, email, password):
@@ -211,6 +193,9 @@ class Accommodation:
         return "Success"
 
     def update_calendar(self):
+        pass
+
+    def calculate(self, adult, children, pet):
         pass
 
     @property
