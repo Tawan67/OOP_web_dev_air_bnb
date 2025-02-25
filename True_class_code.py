@@ -322,6 +322,7 @@ class House(Accommodation):
     @property
     def get_price(self):
         return self.__price
+# daaa
 
 
 class Hotel(Accommodation):
