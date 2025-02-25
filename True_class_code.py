@@ -27,6 +27,37 @@ class ControlSystem:
         self.__paymentmethod = input1
         return "Success"
 
+    def search_accom_by_id(self, accom_id):
+        pass
+
+    def create_booking(self):
+        pass
+
+    def create_account(self):
+        pass
+
+    def cal_price_in_accom(self, accom_id, guest):
+        pass  # call func in Accomodation to cal total price
+
+    def search_user_by_id(self, user_id):
+        pass  # search for check if user want to sign up
+
+    def search_coupon_by_user_id(self, user_id):
+        # for show all coupon on UI
+        pass
+
+    def create_payment(self):
+        pass  # call Booking to create
+
+    def create_payment_med(self):
+        # cal member to create and put on Booking after create
+        pass
+
+    def update_booking_pay(Booking, Payment, PaymentMethod):
+        # to put payment and pay_med into Booking
+        pass
+# update
+
     def search_member_by_id(self, id):
         for member in self.get_member_list:
             if id == member.get_user_id:
@@ -75,8 +106,7 @@ class ControlSystem:
 
     def search_host_by_accom(self, Accom):
         pass
-    
-    
+
 
 class User:
     count_id = 1
@@ -152,8 +182,9 @@ class Host(User):
         self.__my_accommodation = input1
         return "Success"
 
-    def get_my_accommodation(self,Host):
+    def get_my_accommodation(self, Host):
         pass
+
     @property
     def get_phone_num(self):
         return self.__phone_num
@@ -199,22 +230,25 @@ class Accommodation:
 
     def calculate(self, adult, children, pet):
         pass
-        
-    def sort_dates_list(self,dates_list):
+
+    def sort_dates_list(self, dates_list):
         pass
 
-    def get_accom_detail(self,Accommodation):   
-        #get accom_name,address,accom_pic
-        #return accom_detail,sorted_date
+    def get_accom_detail(self, Accommodation):
+        # get accom_name,address,accom_pic
+        # return accom_detail,sorted_date
         pass
 
-    def get_price(self,date,guest_amount):
+    def get_price(self, date, guest_amount):
         pass
+
     def cal_total_price(self):
         pass
-    def get_review(self,Accommodation):
-        
+
+    def get_review(self, Accommodation):
+
         pass
+
     @property
     def get_id(self):
         return self.__id
@@ -230,8 +264,6 @@ class Accommodation:
     @property
     def get_accom_pics(self):
         return self.__accom_pics
-    
-    
 
 
 class House(Accommodation):
@@ -265,8 +297,9 @@ class Room:
         self.__price_per_day = price
         self.__calendar = []
 
+
 class Review:
-    def __init__(self,rating:int,user:User,message):
+    def __init__(self, rating: int, user: User, message):
         self.__rating = rating
         self.__user = user
         self.__message = message
@@ -274,6 +307,8 @@ class Review:
 
     def get_info(self):
         pass
+
+
 class Booking:
     count = 0
 
@@ -387,13 +422,14 @@ class PaymentMethod:
 
 
 class BookingDate:
-    def __init__(self, user, checkin_date,checkout_date):
+    def __init__(self, user, checkin_date, checkout_date):
         self.__user = user
         self.__checkin_date = checkin_date
         self.__checkout_date = checkout_date
 
     def get_bookdate(self):
         pass
+
     def cal_date_period(self):
         pass
     pass
