@@ -6,6 +6,7 @@ class ControlSystem:
         self.__accommodation_list = []
         self.__paymentmethod = None
         self.__balance = None
+# dd
 
     @property
     def get_booking_list(self):
