@@ -1,11 +1,12 @@
 class ControlSystem:
+    # test git
     def __init__(self):
         self.__booking_list = []
         self.__member_list = []
         self.__host_list = []
         self.__accommodation_list = []
         self.__paymentmethod = None
-# H2O
+        self.__balance = None
 
     @property
     def get_booking_list(self):
@@ -60,6 +61,12 @@ class ControlSystem:
         else:
             self.__accommodation_list.append(accommodation)
             return "Success"
+
+    def check_accom_available(self, booking_id):
+        pass
+
+    def noti_host(self):
+        pass
 
 
 class User:
@@ -169,6 +176,9 @@ class Accommodation:
         self.__status = True
         return "Success"
 
+    def update_calendar(self):
+        pass
+
     @property
     def get_id(self):
         return self.__id
@@ -235,7 +245,16 @@ class Booking:
         # self.__pay_med เก็บ pay_med ทั้งก้อน
         self.__payment = None
         self.__pay_med = None
+        self.__frequency = None
         Booking.count += 1
+
+    @property
+    def get_payment_method(self):
+        return self.__pay_med
+
+    @property
+    def get_frequency(self):
+        return self.__frequency
 
     def update_booking_status(self, input1):
         pass
@@ -244,6 +263,9 @@ class Booking:
         pass
 
     def update_pay_med(self, input1):
+        pass
+
+    def verify_calendar(self):
         pass
 
 
@@ -320,19 +342,14 @@ class Caledar:
     pass
 
 
-"""
-class Bank(PaymentMethod):
-    def __init__(self, bank, user, balance):
-        super().__init__(bank, user, balance)
-    pass
-"""
-
-
 class Card(PaymentMethod):
     def __init__(self, bank_id, user, balance, password):
         super().__init__(bank_id, user, balance)
         self.__card_password = password
-    pass
+        pass
+
+    def pluspoint(self, point):
+        pass
 
 
 class Credit(Card):
