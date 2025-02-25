@@ -57,6 +57,7 @@ class ControlSystem:
     def update_booking_pay(Booking, Payment, PaymentMethod):
         # to put payment and pay_med into Booking
         pass
+# update
 
     def search_member_by_id(self, id):
         for member in self.get_member_list:
