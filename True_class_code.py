@@ -1,5 +1,4 @@
 class ControlSystem:
-    # test git
     def __init__(self):
         self.__booking_list = []
         self.__member_list = []
@@ -93,11 +92,19 @@ class ControlSystem:
             self.__accommodation_list.append(accommodation)
             return "Success"
 
-    # checke booked date ใน accomodation ก่อนจ่ายเงิน
     def check_accom_available(self, booking_id):
         pass
 
     def noti_host(self):
+        pass
+
+    def search_accom_detail(self, accom_id):
+        pass
+
+    def search_accomodation_by_id(self, accom_id):
+        pass
+
+    def search_host_by_accom(self, Accom):
         pass
 
 
@@ -175,6 +182,9 @@ class Host(User):
         self.__my_accommodation = input1
         return "Success"
 
+    def get_my_accommodation(self, Host):
+        pass
+
     @property
     def get_phone_num(self):
         return self.__phone_num
@@ -182,6 +192,10 @@ class Host(User):
     @property
     def get_age(self):
         return self.__age
+
+    @property
+    def get_host_name(self):
+        return self.__user_name
 
 
 class Admin(User):
@@ -212,6 +226,27 @@ class Accommodation:
         return "Success"
 
     def update_calendar(self):
+        pass
+
+    def calculate(self, adult, children, pet):
+        pass
+
+    def sort_dates_list(self, dates_list):
+        pass
+
+    def get_accom_detail(self, Accommodation):
+        # get accom_name,address,accom_pic
+        # return accom_detail,sorted_date
+        pass
+
+    def get_price(self, date, guest_amount):
+        pass
+
+    def cal_total_price(self):
+        pass
+
+    def get_review(self, Accommodation):
+
         pass
 
     @property
@@ -261,6 +296,17 @@ class Room:
         self.__room_floor = room_floor
         self.__price_per_day = price
         self.__calendar = []
+
+
+class Review:
+    def __init__(self, rating: int, user: User, message):
+        self.__rating = rating
+        self.__user = user
+        self.__message = message
+        pass
+
+    def get_info(self):
+        pass
 
 
 class Booking:
@@ -375,16 +421,16 @@ class PaymentMethod:
         pass
 
 
-class Caledar:
-    def __init__(self, month, year):
-        self.__month = month
-        self.__year = year
-        self.__booked_date = []
+class BookingDate:
+    def __init__(self, user, checkin_date, checkout_date):
+        self.__user = user
+        self.__checkin_date = checkin_date
+        self.__checkout_date = checkout_date
 
-    def get_calendar(self):
+    def get_bookdate(self):
         pass
 
-    def update_date(self, date):
+    def cal_date_period(self):
         pass
     pass
 
