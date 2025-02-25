@@ -28,6 +28,36 @@ class ControlSystem:
         self.__paymentmethod = input1
         return "Success"
 
+    def search_accom_by_id(self, accom_id):
+        pass
+
+    def create_booking(self):
+        pass
+
+    def create_account(self):
+        pass
+
+    def cal_price_in_accom(self, accom_id, guest):
+        pass  # call func in Accomodation to cal total price
+
+    def search_user_by_id(self, user_id):
+        pass  # search for check if user want to sign up
+
+    def search_coupon_by_user_id(self, user_id):
+        # for show all coupon on UI
+        pass
+
+    def create_payment(self):
+        pass  # call Booking to create
+
+    def create_payment_med(self):
+        # cal member to create and put on Booking after create
+        pass
+
+    def update_booking_pay(Booking, Payment, PaymentMethod):
+        # to put payment and pay_med into Booking
+        pass
+
     def search_member_by_id(self, id):
         for member in self.get_member_list:
             if id == member.get_user_id:
@@ -62,6 +92,7 @@ class ControlSystem:
             self.__accommodation_list.append(accommodation)
             return "Success"
 
+    # checke booked date ใน accomodation ก่อนจ่ายเงิน
     def check_accom_available(self, booking_id):
         pass
 
@@ -99,6 +130,9 @@ class Member(User):
         self.__age = age
         self.__pay_med = None
         self.__my_coupons = []
+
+    def create_coupon(self):
+        pass
 
     def update_payment_method(self, input1):
         self.__pay_med = input1
@@ -236,7 +270,7 @@ class Booking:
         self.__accommodation = accom
         # self.__date = date วันที่ทำรายการจอง
         self.__date = date
-        # self.__amount = amount ราคาที่ต้องจ่าย
+        self.__amount = 0  # ราคาที่ต้องจ่าย
         self.__guess_amount = guess
         self.__booking_status = False
         # self.__member = member เก็บ Member ทั้งก้อน
@@ -265,7 +299,19 @@ class Booking:
     def update_pay_med(self, input1):
         pass
 
-    def verify_calendar(self):
+    def verify_booked_date(self):
+        pass
+
+    def update_date(self, start_date, end_date):
+        pass
+
+    def update_guest(self):
+        pass
+
+    def get_amount(self):
+        return self.__amount
+
+    def discount_by_coupon(self):
         pass
 
 
