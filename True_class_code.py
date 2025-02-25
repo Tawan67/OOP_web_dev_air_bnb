@@ -54,30 +54,11 @@ class ControlSystem:
 
         pass  # call func in Accomodation to cal total price
 
-    def search_user_to_check(self, user_name, phone, email, password, age):
-        for member in self.__member_list:
-            if member.get_phone_num == phone and member.get_user_nane == user_name and member.get_email == email:
-                return "You have an Account, Wanna Login?"
-        try:
-            self.create_account(name=user_name, email=email,
-                                password=password, age=age)
-            return "Success"
-        except:
-            return "Sign up Fail"
+    def search_user_by_id(self, user_id):
+
         pass  # search for check if user want to sign up
 
     def search_coupon_by_user_id(self, user_id):
-        user = self.search_member_by_id(user_id)
-        coupons = user.get_coupons
-        result = self.show_coupon(coupons)
-        return result
-
-    def show_coupon(self, coupons):
-        result = []
-        for cou in coupons:
-            if cou.check_expirat():
-                result.append(cou.get_info())
-        return result
         # for show all coupon on UI
         pass
 
@@ -96,7 +77,7 @@ class ControlSystem:
     def search_member_by_id(self, id):
         for member in self.get_member_list:
             if id == member.get_user_id:
-                return member
+                return member, id
         return "cant find"
 
     def add_booking(self, booking):
@@ -244,13 +225,12 @@ class Admin(User):
 class Accommodation:
     count_id = 1
 
-    def __init__(self, name, address, info):
+    def __init__(self, name, address):
         self.__id = Accommodation.count_id
         self.__accom_name = name
         self.__address = address
         self.__status = False
         self.__accom_pics = []
-        self.__info = info
         Accommodation.count_id += 1
 
     def add_accom_pics(self, pic) -> str:
@@ -264,7 +244,7 @@ class Accommodation:
     def update_calendar(self):
         pass
 
-    def calculate(self, adult, children):
+    def calculate(self, adult, children, pet):
         pass
 
     def sort_dates_list(self, dates_list):
@@ -302,6 +282,17 @@ class Accommodation:
         return self.__accom_pics
 
 
+class House(Accommodation):
+    def __init__(self, name, address, price):
+        super().__init__(name, address)
+        self.__price = price
+        self.__my_calendar = []
+
+    @property
+    def get_price(self):
+        return self.__price
+
+
 class Hotel(Accommodation):
     def __init__(self, name, address):
         super().__init__(name, address)
@@ -318,23 +309,9 @@ class Hotel(Accommodation):
 class Room:
     def __init__(self, room_id, room_floor, price):
         self.__room_id = room_id
+        self.__room_floor = room_floor
         self.__price_per_day = price
-        self.__booked_date = []
-
-    @property
-    def get_price(self):
-        return self.__price_per_day
-
-
-class House(Accommodation):
-    def __init__(self, name, address, price):
-        super().__init__(name, address)
-        self.__price = price
-        self.__booked_date = []
-
-    @property
-    def get_price(self):
-        return self.__price
+        self.__calendar = []
 
 
 class Review:
@@ -461,7 +438,8 @@ class PaymentMethod:
 
 
 class BookingDate:
-    def __init__(self, checkin_date, checkout_date):
+    def __init__(self, user, checkin_date, checkout_date):
+        self.__user = user
         self.__checkin_date = checkin_date
         self.__checkout_date = checkout_date
 
@@ -494,27 +472,6 @@ class Debit(Card):
     def __init__(self, bank_id, user, balance, password):
         super().__init__(bank_id, user, balance, password)
     pass
-
-
-class Coupon:
-    def __init__(self, coupon_id, coupon_name, percent_discount, expiration_date):
-        self.__id = coupon_id
-        self.__name = coupon_name
-        self.__discount = percent_discount
-        self.__expiration = expiration_date
-        pass
-
-    def get_info(self):
-        id = self.__id
-        name = self.__name
-        result = {id: name}
-        return result
-
-    def check_expirat(self):
-        from datetime import datetime
-        if self.__expiration > datetime.now():
-            return True
-        return False
 
 
 controlsystem = ControlSystem()
