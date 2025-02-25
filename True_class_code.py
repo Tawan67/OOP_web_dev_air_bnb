@@ -68,6 +68,15 @@ class ControlSystem:
     def noti_host(self):
         pass
 
+    def search_accom_detail(self,accom_id):
+        pass
+    def search_accomodation_by_id(self,accom_id):
+        pass
+    def search_host_by_accom(self,Accom):
+        pass
+    
+    
+
 class User:
     count_id = 1
 
@@ -146,6 +155,8 @@ class Host(User):
     @property
     def get_age(self):
         return self.__age
+    
+
 
 
 class Admin(User):
