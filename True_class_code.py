@@ -5,6 +5,7 @@ class ControlSystem:
         self.__host_list = []
         self.__accommodation_list = []
         self.__paymentmethod = None
+# H2O
 
     @property
     def get_booking_list(self):
