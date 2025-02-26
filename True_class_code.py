@@ -307,9 +307,6 @@ class Accommodation:
         self.__booked_date.remove(target)
         return "Success"
 
-    def cal_price(self, guest, start_date, end_date):
-        pass
-
     @property
     def get_info(self):
         return self.__info
@@ -344,6 +341,17 @@ class House(Accommodation):
     @property
     def get_price(self):
         return self.__price
+
+    def cal_price(self, guest, start_date, end_date, id="House"):
+        if id == "House":
+            additional_payment = guest*(5/100)*price
+            amount_date = (end_date-start_date).days
+            price = ((amount_date+1)*self.__price)
+            additional_payment = guest*(5/100)*price
+            price += additional_payment
+            return price
+        return "Fail"
+
 # daaa
 
 
@@ -359,6 +367,19 @@ class Hotel(Accommodation):
             self.__rooms.append(room)
             return "Success"
 
+    def cal_price(self, guest, start_date, end_date, id="House"):
+        price = 0
+        for room in self.__rooms:
+            if room.get_id == id:
+                price = room.get_price
+                break
+        additional_payment = guest*(5/100)*price
+        amount_date = (end_date-start_date).days
+        price = ((amount_date+1)*self.__price)
+        additional_payment = guest*(5/100)*price
+        price += additional_payment
+        return price
+
 
 class Room:
     def __init__(self, room_id, room_floor, price):
@@ -370,6 +391,10 @@ class Room:
     @property
     def get_price(self):
         return self.__price_per_day
+
+    @property
+    def get_room_id(self):
+        return self.__room_id
 
 
 class House(Accommodation):
