@@ -411,7 +411,7 @@ class Period:
         return False
 
 
-class PaymentMethod:
+    class PaymentMethod:
     def __init__(self, bank_id, user, balance):
         self.__bank_id = bank_id
         self.__owner = user
