@@ -52,8 +52,10 @@ class ControlSystem:
         self.add_member(acount)
         pass
 
-    def cal_price_in_accom(self, accom_id, guest, booked_date):
+    def cal_price_in_accom(self, accom_id, guest, start_date, end_date):
         accom = self.search_accom_by_id(accom_id=accom_id)
+        price = accom.cal_price(guest, start_date, end_date)
+        return price
 
         pass  # call func in Accomodation to cal total price
 
@@ -84,17 +86,34 @@ class ControlSystem:
         # for show all coupon on UI
         pass
 
-    def create_payment(self, key: str, details: list, booking_id):
+    def create_payment(self, price, period, paymed, booking_id):
         booking_item = self.search_booking_by_id(booking_id=booking_id)
-        payment = booking_item.create_payment(key, details)
+        payment = booking_item.create_payment(price, period, paymed)
+        result = self.update_booking_pay(payment)
+        return result
         pass  # call Booking to create
 
-    def create_payment_med(self, key):
+    def create_payment_med(self, details):
+        details = "".join(i for i in details if i != '"')
+        bank_id, user, balance, password = details.split(",")
+        balance = int(balance)
+        user = self.search_member_by_id(user)
+        pay_med = Debit(bank_id, user, balance, password)
+        return pay_med
+        # key use
         # cal member to create and put on Booking after create
         pass
 
-    def update_booking_pay(Booking, Payment, PaymentMethod):
+    def update_booking_payment(self, booking_id, payment):
+        booking = self.search_booking_by_id(booking_id=booking_id)
+        result = booking.update_payment(payment)
         # to put payment and pay_med into Booking
+        pass
+
+    def update_booking_pay_med(self, booking_id, paymed):
+        booking = self.search_booking_by_id(booking_id=booking_id)
+        result = booking.update_pay_med(paymed)
+        return result
         pass
 # update
 
@@ -288,6 +307,9 @@ class Accommodation:
         self.__booked_date.remove(target)
         return "Success"
 
+    def cal_price(self, guest, start_date, end_date):
+        pass
+
     @property
     def get_info(self):
         return self.__info
@@ -441,11 +463,12 @@ class Booking:
 
     def update_payment(self, payment: 'Payment'):
         self.__payment = payment
+        return "Success"
         pass
 
     def update_pay_med(self, pay_med: 'PaymentMethod'):
         self.__pay_med = pay_med
-
+        return "Success"
         pass
 
     def create_payment(self, price, period, paymed):
@@ -540,6 +563,9 @@ class PaymentMethod:
 
     def pay(self, pray_tang):
         pass
+
+    def get_bank_id(self):
+        return self.__bank_id
 
 
 """
