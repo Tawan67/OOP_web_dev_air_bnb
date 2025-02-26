@@ -532,7 +532,7 @@ class Period:
         return False
 
 
-    class PaymentMethod:
+class PaymentMethod:
     def __init__(self, bank_id, user, balance):
         self.__bank_id = bank_id
         self.__owner = user
@@ -542,19 +542,12 @@ class Period:
         pass
 
 
-"""
-class Bank(PaymentMethod):
-    def __init__(self, bank, user, balance):
-        super().__init__(bank, user, balance)
-    pass
-"""
-
 
 class Card(PaymentMethod):
     def __init__(self, bank_id, user, balance, password):
         super().__init__(bank_id, user, balance)
         self.__card_password = password
-    pass
+        pass
 
 
 class Credit(Card):
