@@ -254,7 +254,7 @@ class Admin(User):
     def approve_accom(self, accom):
         pass
 
-
+# TODO:
 class Accommodation:
     count_id = 1
 
@@ -337,7 +337,7 @@ class Hotel(Accommodation):
             self.__rooms.append(room)
             return "Success"
 
-
+# TODO:
 class Room:
     def __init__(self, room_id, room_floor, price):
         self.__room_id = room_id
@@ -349,7 +349,7 @@ class Room:
     def get_price(self):
         return self.__price_per_day
 
-
+# TODO:
 class House(Accommodation):
     def __init__(self, name, address, info, price):
         super().__init__(name, address, info)
