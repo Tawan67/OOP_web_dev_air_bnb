@@ -1,5 +1,6 @@
 from fasthtml.common import *
 from datetime import datetime, timedelta
+from calendar import monthrange, weekday
 
 class ControlSystem:
     def __init__(self):
@@ -534,9 +535,52 @@ def make_booking(control_system):
 def add_accommodation_booked_date(control_system):
     new_booked_date = BookedDate(datetime.now(), datetime.now() + timedelta(days=2))
     control_system.get_accommodation_list[0].add_booked_date(new_booked_date)
+    
+    new_booked_date = BookedDate(datetime.now() + timedelta(days=4), datetime.now() + timedelta(days=6))
+    control_system.get_accommodation_list[0].add_booked_date(new_booked_date)
+    
+    new_booked_date = BookedDate(datetime.now() + timedelta(days=8), datetime.now() + timedelta(days=12))
+    control_system.get_accommodation_list[0].add_booked_date(new_booked_date)
+    
+# Function to generate a simple calendar table
+def generate_calendar(accom, year, month):
+    _, days_in_month = monthrange(year, month)
+    first_day = weekday(year, month, 1)
+    
+    # Get booked dates as a set of day numbers
+    booked_days = set()
+    for bd in accom.get_book_dates:
+        check_in = bd.get_checkindate()
+        check_out = bd.get_checkoutdate()
+        current = check_in
+        while current < check_out:
+            if current.year == year and current.month == month:
+                booked_days.add(current.day)
+            current += timedelta(days=1)
+    
+    # Build the calendar
+    cal = Table(cls="calendar")
+    cal.append(Tr(*[Th(day) for day in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]]))
+    
+    week = [Td("") for _ in range(first_day)]
+    for day in range(1, days_in_month + 1):
+        cell_class = "booked" if day in booked_days else ""
+        week.append(Td(str(day), cls=cell_class))
+        if len(week) == 7:
+            cal.append(Tr(*week))
+            week = []
+    
+    while len(week) < 7:
+        week.append(Td(""))
+    if week:
+        cal.append(Tr(*week))
+    
+    return cal
+    
+# Updated CSS with calendar styling
 def get_style():
     return Style("""
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input, select, textarea { width: 100%; padding: 8px; margin-bottom: 10px; }
@@ -547,6 +591,10 @@ def get_style():
         .payment-details { background-color: #f9f9f9; padding: 15px; border-radius: 4px; }
         .error { color: red; }
         .success { color: green; }
+        .calendar { border-collapse: collapse; width: 100%; margin-top: 10px; }
+        .calendar th, .calendar td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .calendar th { background-color: #f2f2f2; }
+        .calendar .booked { background-color: #ffcccc; }
     """)
 
 app ,rt= fast_app()
@@ -558,7 +606,7 @@ control_system = ControlSystem()
 add_user_and_payment_method(control_system)
 add_accommodation(control_system)
 make_booking(control_system)
-# add_accommodation_booked_date(control_system)
+add_accommodation_booked_date(control_system)
 
 # Get booking details
 display = control_system.get_member_list[0].get_payment_method[0].get_balance
@@ -573,6 +621,17 @@ accom_address = my_booking.get_accommodation.get_address
 ###################################
 @rt('/')
 def home():
+    # Format booked dates as a readable string
+    booked_dates_str = ""
+    booked_dates = my_booking.get_accommodation.get_book_dates
+    if booked_dates:
+        booked_dates_str = ", ".join(
+            f"{bd.get_checkindate().strftime('%Y-%m-%d')} to {bd.get_checkoutdate().strftime('%Y-%m-%d')}"
+            for bd in booked_dates
+        )
+    else:
+        booked_dates_str = "No booked dates yet"
+
     return Html(
         Head(Title('Payment Form'), get_style()),
         Body(
@@ -582,9 +641,9 @@ def home():
                     Fieldset(
                         Legend('Booking Summary'),
                         Div(
-                            P(f'Accommodation: {accom_name}'),  # Added accommodation name
-                            P(f'Address: {accom_address}'),     # Added accommodation address
-                            P(f'Accom Calendar: {my_booking.get_accommodation.get_book_dates}'),
+                            P(f'Accommodation: {accom_name}'),
+                            P(f'Address: {accom_address}'),
+                            P(f'Booked Dates: {booked_dates_str}'),  # Improved display
                             P(f'Guests: {guess}'),
                             P(f'Check-in: {checkin.strftime("%Y-%m-%d %H:%M")}'),
                             P(f'Check-out: {checkout.strftime("%Y-%m-%d %H:%M")}'),
@@ -592,6 +651,7 @@ def home():
                             cls='payment-details'
                         )
                     ),
+                    # [Rest of the form remains unchanged]
                     Fieldset(
                         Legend('Payment Details'),
                         Div(
