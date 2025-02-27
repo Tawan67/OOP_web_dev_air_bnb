@@ -84,12 +84,13 @@ class Host(User):
 class Accommodation:
     count_id = 1
 
-    def __init__(self, name, address):
+    def __init__(self, name, address, info):
         self.__id = Accommodation.count_id
         self.__accom_name = name
         self.__address = address
         self.__status = False
         self.__accom_pics = []
+        self.__info = info
         Accommodation.count_id += 1
 
     def add_accom_pics(self, pic):
@@ -122,7 +123,7 @@ class House(Accommodation):
     def get_price(self):
         return self.__price
 
-class Hotel:
+class Hotel(Accommodation):
     def __init__(self, name, address, info):
         super().__init__(name, address, info)
         self.__rooms = []
@@ -135,7 +136,13 @@ class Hotel:
             return "Success"
 
 class Room(Accommodation):
-    def __init__(self, room_id, room_floor, price):
+    def __init__(self, room_id, room_floor, price, hotel_address, hotel_name): 
+        # FIXME:
+        super().__init__(
+            name=f"Room {room_id}",
+            address=f"{hotel_address} - Floor {room_floor}",
+            info=f"Room in {hotel_name}"
+        )
         self.__room_id = room_id
         self.__room_floor = room_floor
         self.__price_per_day = price
@@ -147,7 +154,6 @@ class Room(Accommodation):
 
 
 
-# Function to add test instances with images
 def add_accomodation(control_system):
     # Create a test Host instance
     test_host = Host(
@@ -158,26 +164,47 @@ def add_accomodation(control_system):
         age=35
     )
 
-    # Create multiple test Accommodation instances with sample image URLs
-    test_accom1 = Accommodation(name="Cozy Cottage", address="123 Forest Lane, Natureville")
-    test_accom1.add_accom_pics("https://via.placeholder.com/300x200?text=Cozy+Cottage")
+    # Create a test House instance
+    test_house = House(
+        name="Cozy Cottage",
+        address="123 Forest Lane, Natureville",
+        info="A charming cottage in the woods",  # Added missing info parameter
+        price=150.00
+    )
+    test_house.add_accom_pics("https://via.placeholder.com/300x200?text=Cozy+Cottage")
+
+    # Create a test Hotel instance
+    test_hotel = Hotel(
+        name="Grand Hotel",
+        address="456 City Ave, Metropolis",
+        info="A luxurious downtown hotel"  # Added missing info parameter
+    )
+    test_hotel.add_accom_pics("https://via.placeholder.com/300x200?text=Grand+Hotel")
+
+    # Create a test Room instance
+    test_room = Room(
+        room_id="R101",
+        room_floor=1,
+        price=120.00,
+        hotel_address="456 City Ave, Metropolis",
+        hotel_name="Grand Hotel"
+    )
     
-    test_accom2 = Accommodation(name="Beach House", address="456 Ocean Drive, Seaside")
-    test_accom2.add_accom_pics("https://via.placeholder.com/300x200?text=Beach+House")
-    
-    test_accom3 = Accommodation(name="City Loft", address="789 Urban St, Metropolis")
-    test_accom3.add_accom_pics("https://via.placeholder.com/300x200?text=City+Loft")
+    test_room.add_accom_pics("https://via.placeholder.com/300x200?text=Room+101")
+
+    # Add the room to the hotel
+    test_hotel.add_room(test_room)
 
     # Add accommodations to the host's list
-    test_host.add_accommodation([test_accom1, test_accom2, test_accom3])
+    test_host.add_accommodation([test_house, test_hotel])
 
     # Store in ControlSystem
     control_system.add_host(test_host)
-    control_system.add_accommodation(test_accom1)
-    control_system.add_accommodation(test_accom2)
-    control_system.add_accommodation(test_accom3)
+    control_system.add_accommodation(test_house)
+    control_system.add_accommodation(test_hotel)
+    # Note: We don't add the room directly to control_system since it's part of the hotel
 
-    return "Test host and accommodations added successfully"
+    return "Test host, house, and hotel with room added successfully"
 
 # Define the FastHTML app
 app = FastHTML()

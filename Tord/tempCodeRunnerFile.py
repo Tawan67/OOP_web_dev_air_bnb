@@ -1,0 +1,1 @@
+self, room_id, room_floor, price, hotel_address, hotel_name
