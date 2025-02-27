@@ -1,6 +1,12 @@
 from fasthtml.common import *
 from datetime import datetime, timedelta
+import logging
 
+# Set up logging for debugging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+# [Your existing class definitions remain unchanged: ControlSystem, User, etc.]
 class ControlSystem:
     def __init__(self):
         self.__booking_list = []
@@ -31,26 +37,16 @@ class ControlSystem:
         self.__paymentmethod = input1
         return "Success"
 
-    def search_accom_by_id(self, accom_id):
+    def search_accom_by_id(self, accom_id):  # 1
         for i in self.__accommodation_list:
             if i.get_id == accom_id:
                 return i
         return "Not Found"
 
 
-    def create_booking(self, accom, date, guess, member, check_in, check_out):
-        # Check availability first
-        if not self.check_accom_available(accom.get_id, check_in, check_out):
-            return "Error: Accommodation not available for these dates"
-        
-        # Create the booking
-        new_booking = Booking(accom=accom, date=date, guess=guess, member=member, check_in=check_in, check_out=check_out)
-        self.add_booking(new_booking)
-        
-        # Add the booked dates to the accommodation
-        # booked_date = BookedDate(check_in, check_out)
-        # accom.add_booked_date(booked_date)
-        return "Booking created successfully"
+    def create_booking(self, accom, date, guess, member):
+        newbooking = Booking(accom=accom, date=date, guess=guess, member=member)
+        self.add_booking(newbooking)
 
     def create_account(self):
         pass
@@ -110,28 +106,8 @@ class ControlSystem:
             self.__accommodation_list.append(accommodation)
             return "Success"
 
-    def search_booking_by_id(self, booking_id):
-        for booking in self.get_booking_list:
-            if booking.get_id == booking_id:
-                return booking 
-            else:
-                return "Not Found"
-            
-    def check_accom_available(self, accom_id, requested_check_in, requested_check_out):
-        # Find the accommodation
-        accom = self.search_accom_by_id(accom_id)
-        if accom == "Not Found":
-            return False
-
-        # Check for overlap with existing booked dates
-        for booked_date in accom.get_book_dates:
-            existing_check_in = booked_date.get_checkindate()
-            existing_check_out = booked_date.get_checkoutdate()
-
-            # Overlap condition: if the requested range intersects with an existing range
-            if (requested_check_in < existing_check_out) and (requested_check_out > existing_check_in):
-                return False  # Not available
-        return True  # Available
+    def check_accom_available(self, booking_id):
+        pass
 
     def noti_host(self):
         pass
@@ -156,15 +132,10 @@ class Accommodation:
         self.__status = False
         self.__accom_pics = []
         self.__info = info
-        self.__book_dates = []
         Accommodation.count_id += 1
 
     def add_accom_pics(self, pic):
         self.__accom_pics.append(pic)
-        return "Success"
-    
-    def add_booked_date(self, date):
-        self.__book_dates.append(date)
         return "Success"
 
     @property
@@ -186,10 +157,6 @@ class Accommodation:
     @property
     def get_price(self):
         return self.__price
-    
-    @property
-    def get_book_dates(self):
-        return self.__book_dates
 
 class Payment:
     def __init__(self, period, pay_med, id):
@@ -206,27 +173,17 @@ class Payment:
 
 class PaymentMethod:
     def __init__(self, bank_id, user, balance):
-        self.__id = bank_id
         self.__bank_id = bank_id
         self.__owner = user
         self.__balance = balance
-        self.__point = 0
 
     @property
     def get_balance(self):
         return self.__balance
-    
-    @property
-    def get_id(self):
-        return self.__id
-    
-    @property
-    def get_point(self):
-        return self.__point
 
     def pay(self, pray_tang):
-        self.__balance -= pray_tang
-        self.__point += pray_tang/100
+        pass
+
 class User:
     count_id = 1
 
@@ -295,7 +252,7 @@ class Host(User):
 class Booking:
     count = 0
 
-    def __init__(self, accom, date, guess, member, check_in, check_out):
+    def __init__(self, accom, date, guess, member):
         self.__booking_id = Booking.count
         self.__accommodation = accom
         # self.__date = date วันที่ทำรายการจอง
@@ -310,14 +267,10 @@ class Booking:
         self.__payment = None
         self.__pay_med = None
         self.__frequency = None
-        self.__check_in = check_in
-        self.__check_out = check_out
+        self.__check_in = None
+        self.__check_out = None
         Booking.count += 1
 
-    @property
-    def get_id(self): 
-        return self.__booking_id
-    
     @property
     def get_payment_method(self):
         return self.__pay_med
@@ -341,10 +294,6 @@ class Booking:
     @property   
     def get_guess(self):
         return self.__guess_amount
-    
-    @property
-    def get_member(self):
-        return self.__member
     
     def set_check_in(self, check_in):
         self.__check_in = check_in
@@ -400,6 +349,7 @@ class Hotel(Accommodation):
 
 class Room(Accommodation):
     def __init__(self, room_id, room_floor, price, hotel_address, hotel_name): 
+        # FIXME:
         super().__init__(
             name=f"Room {room_id}",
             address=f"{hotel_address} - Floor {room_floor}",
@@ -425,18 +375,6 @@ class BookedDate:
     def get_checkoutdate(self):
         return self.__checkoutdate
 
-class Card(PaymentMethod):
-    def __init__(self, bank_id, user, balance, password):
-        super().__init__(bank_id, user, balance)
-        self.__card_password = password
-        pass
-
-
-class Credit(Card):
-    def __init__(self, bank_id, user, balance, password):
-        super().__init__(bank_id, user, balance, password)
-        self.__credit_point = 0
-    pass
 
 def add_user_and_payment_method(control_system):
     """
@@ -478,7 +416,7 @@ def add_accommodation(control_system):
         price=150.00
     )
     test_house.add_accom_pics("https://via.placeholder.com/300x200?text=Cozy+Cottage")
-    
+
     # Create a test Hotel instance
     test_hotel = Hotel(
         name="Grand Hotel",
@@ -513,27 +451,15 @@ def add_accommodation(control_system):
     return "Test host, house, and hotel with room added successfully"
 # TODO:
 def make_booking(control_system):
-    accom = control_system.search_accom_by_id(1)  # Assuming House with ID 1
-    if accom == "Not Found":
-        print("Accommodation not found")
-        return
-    
-    check_in = datetime.now()
-    check_out = datetime.now() + timedelta(days=5)
-    
-    result = control_system.create_booking(
-        accom=accom,
-        date=datetime.now(),
-        guess=2,
-        member=control_system.search_member_by_id(1)[0] if control_system.search_member_by_id(1) != "cant find" else None,
-        check_in=check_in,
-        check_out=check_out
-    )
-    print(result)
-    
-def add_accommodation_booked_date(control_system):
-    new_booked_date = BookedDate(datetime.now(), datetime.now() + timedelta(days=2))
-    control_system.get_accommodation_list[0].add_booked_date(new_booked_date)
+    control_system.create_booking(
+        accom=control_system.search_accom_by_id(1), 
+        date=datetime.now(), 
+        guess=2, 
+        member=control_system.search_member_by_id(1)
+        )
+    control_system.get_booking_list[0].set_check_in(datetime.now())
+    control_system.get_booking_list[0].set_check_out(datetime.now() + timedelta(days=5))
+
 def get_style():
     return Style("""
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -549,154 +475,205 @@ def get_style():
         .success { color: green; }
     """)
 
-app ,rt= fast_app()
-
-######## Call Function ############
+app = FastHTML()
 
 # Initialize control system and setup data
 control_system = ControlSystem()
 add_user_and_payment_method(control_system)
 add_accommodation(control_system)
 make_booking(control_system)
-# add_accommodation_booked_date(control_system)
 
-# Get booking details
-display = control_system.get_member_list[0].get_payment_method[0].get_balance
-checkin = control_system.get_booking_list[0].get_check_in
-checkout = control_system.get_booking_list[0].get_check_out
-guess = control_system.get_booking_list[0].get_guess
-my_booking = control_system.get_booking_list[0]
-booking_price = my_booking.get_accommodation.get_price
-accom_name = my_booking.get_accommodation.get_acc_name
-accom_address = my_booking.get_accommodation.get_address
+# Get booking details with safety checks
+try:
+    display = control_system.get_member_list[0].get_payment_method[0].get_balance
+    booking_price = control_system.get_booking_list[0].get_accommodation.get_price
+    checkin = control_system.get_booking_list[0].get_check_in
+    checkout = control_system.get_booking_list[0].get_check_out
+    guess = control_system.get_booking_list[0].get_guess
+except (IndexError, AttributeError) as e:
+    logger.error(f"Error accessing booking details: {e}")
+    display = booking_price = checkin = checkout = guess = "N/A"
 
-###################################
-@rt('/')
+@app.route('/')
 def home():
-    return Html(
-        Head(Title('Payment Form'), get_style()),
-        Body(
-            Div(
-                H1('Complete Your Booking Payment'),
-                Form(
-                    Fieldset(
-                        Legend('Booking Summary'),
-                        Div(
-                            P(f'Accommodation: {accom_name}'),  # Added accommodation name
-                            P(f'Address: {accom_address}'),     # Added accommodation address
-                            P(f'Accom Calendar: {my_booking.get_accommodation.get_book_dates}'),
-                            P(f'Guests: {guess}'),
-                            P(f'Check-in: {checkin.strftime("%Y-%m-%d %H:%M")}'),
-                            P(f'Check-out: {checkout.strftime("%Y-%m-%d %H:%M")}'),
-                            P(f'Total Price: ${booking_price * guess}'),
-                            cls='payment-details'
-                        )
-                    ),
-                    Fieldset(
-                        Legend('Payment Details'),
-                        Div(
-                            Label('Payment Method'),
-                            Select(
-                                Option('Credit Card', value='credit'),
-                                Option('Bank Transfer', value='bank'),
-                                name='payment_type'
-                            ),
-                            cls='form-group'
-                        ),
-                        Div(
-                            Label('Card Number'),
-                            Input(type='text', name='card_number', placeholder='XXXX-XXXX-XXXX-XXXX', required=True),
-                            cls='form-group'
-                        ),
-                        Div(
-                            Label('Card Holder Name'),
-                            Input(type='text', name='card_holder', placeholder='John Doe', required=True),
-                            cls='form-group'
-                        ),
-                        Div(
-                            Label('Expiration Date'),
-                            Input(type='month', name='expiry_date', required=True),
-                            cls='form-group'
-                        ),
-                        Div(
-                            Label('CVV'),
-                            Input(type='text', name='cvv', placeholder='123', maxlength='4', required=True),
-                            cls='form-group'
-                        ),
-                        Div(
-                            Label('Billing Address'),
-                            Textarea(name='billing_address', rows='3', placeholder='Enter your billing address', required=True),
-                            cls='form-group'
-                        )
-                    ),
-                    P(f'Card Number: {control_system.get_member_list[0].get_payment_method[0].get_id}'),
-                    P(f'Current Balance: ${control_system.get_member_list[0].get_payment_method[0].get_balance}'),
-                    P(f'Point: {control_system.get_member_list[0].get_payment_method[0].get_point}'),
-                    Button('Process Payment', type='submit'),
-                    action='/process_payment',
-                    method='post'
-                ),
-                cls='container'
-            )
-        )
-    )
-
-@rt('/process_payment')
-async def process_payment(req):
-    form_data = await req.form()
-    # Simulate payment processing
-    total_price = booking_price * guess
-    pay_med = control_system.get_member_list[0].get_payment_method[0]
-    booking = control_system.get_booking_list[0]
-
-    #TODO: add check_accomo_avalable(booking_id)
-    # Check availability for the booking's dates
-    availability = control_system.check_accom_available(
-        booking.get_accommodation.get_id,
-        booking.get_check_in,
-        booking.get_check_out
-    )
-
-    if (form_data.get('card_number') == pay_med.get_id) and (total_price < pay_med.get_balance) and availability:
-        
-        booked_date = BookedDate(booking.get_check_in, booking.get_check_out)
-        status = booking.get_accommodation.add_booked_date(booked_date)
-        
-        # Here you would normally process the payment
-        # For this example, we'll just simulate success
-        result = pay_med.pay(total_price)
+    try:
         return Html(
-            Head(Title('Payment Successful')),
+            Head(Title('Payment Form'), get_style()),
             Body(
                 Div(
-                    H1('Payment Successful'),
-                    P('Your payment has been processed successfully.', cls='success'),
-                    P(f'New Balance: ${pay_med.get_balance}', cls='success'),
-                    P(f'Booking Status: {status}', cls='success'),
+                    H1('Complete Your Booking Payment'),
                     Form(
-                        Label('Go Back?'),
-                        Button('Go Back', type='submit'),
-                        action='/',
-                        method='get'
+                        Fieldset(
+                            Legend('Booking Summary'),
+                            Div(
+                                P(f'Guests: {guess}'),
+                                P(f'Check-in: {checkin.strftime("%Y-%m-%d %H:%M") if checkin != "N/A" else "N/A"}'),
+                                P(f'Check-out: {checkout.strftime("%Y-%m-%d %H:%M") if checkout != "N/A" else "N/A"}'),
+                                P(f'Total Price: ${booking_price * guess if booking_price != "N/A" and guess != "N/A" else "N/A"}'),
+                                cls='payment-details'
+                            )
+                        ),
+                        Fieldset(
+                            Legend('Payment Details'),
+                            Div(
+                                Label('Payment Method'),
+                                Select(
+                                    Option('Credit Card', value='credit'),
+                                    Option('Bank Transfer', value='bank'),
+                                    name='payment_type'
+                                ),
+                                cls='form-group'
+                            ),
+                            Div(
+                                Label('Card Number'),
+                                Input(type='text', name='card_number', placeholder='XXXX-XXXX-XXXX-XXXX', required=True),
+                                cls='form-group'
+                            ),
+                            Div(
+                                Label('Card Holder Name'),
+                                Input(type='text', name='card_holder', placeholder='John Doe', required=True),
+                                cls='form-group'
+                            ),
+                            Div(
+                                Label('Expiration Date'),
+                                Input(type='month', name='expiry_date', required=True),
+                                cls='form-group'
+                            ),
+                            Div(
+                                Label('CVV'),
+                                Input(type='text', name='cvv', placeholder='123', maxlength='4', required=True),
+                                cls='form-group'
+                            ),
+                            Div(
+                                Label('Billing Address'),
+                                Textarea(name='billing_address', rows='3', placeholder='Enter your billing address', required=True),
+                                cls='form-group'
+                            )
+                        ),
+                        P(f'Current Balance: ${display}'),
+                        Button('Process Payment', type='submit'),
+                        action='/process_payment',
+                        method='POST'  # Uppercase for consistency
                     ),
                     cls='container'
                 )
             )
         )
-    else:
+    except Exception as e:
+        logger.error(f"Error in home route: {e}")
         return Html(
-            Head(Title('Payment Error')),
+            Head(Title('Server Error')),
             Body(
                 Div(
-                    H1('Payment Error'),
-                    P(form_data.get('card_number') == pay_med.get_id ),
-                    P(f'Enough Money : {total_price < pay_med.get_balance}'),
-                    P(f'Available : {availability}'),
+                    H1('Internal Server Error'),
+                    P('Something went wrong on the server.', cls='error'),
+                    A('Back', href='/'),
+                    cls='container'
                 )
             )
-            
         )
-        
+
+@app.route('/process_payment', methods=['POST'])
+def process_payment(req):
+    try:
+        # Handle req.form in case it's a function (older FastHTML behavior)
+        form_data = req.form
+        if callable(form_data):  # If req.form is a function, call it
+            form_data = form_data()
+        logger.debug(f"form_data type: {type(form_data)}")
+        logger.debug(f"form_data content: {form_data}")
+
+        # Check if form_data is valid
+        if not form_data or not hasattr(form_data, 'get'):
+            logger.error("Invalid form data received")
+            return Html(
+                Head(Title('Payment Error')),
+                Body(
+                    Div(
+                        H1('Payment Failed'),
+                        P('No valid payment data received.', cls='error'),
+                        A('Try Again', href='/'),
+                        cls='container'
+                    )
+                )
+            )
+
+        # Basic validation for required fields
+        required_fields = ['payment_type', 'card_number', 'card_holder', 'expiry_date', 'cvv']
+        missing_fields = [field for field in required_fields if not form_data.get(field)]
+        if missing_fields:
+            logger.debug(f"Missing fields: {missing_fields}")
+            return Html(
+                Head(Title('Payment Error')),
+                Body(
+                    Div(
+                        H1('Payment Failed'),
+                        P('Please fill in all required fields:', cls='error'),
+                        *[P(f"- {field.replace('_', ' ').title()}") for field in missing_fields],
+                        A('Try Again', href='/'),
+                        cls='container'
+                    )
+                )
+            )
+
+        # Simulate payment processing
+        total_price = booking_price * guess if booking_price != "N/A" and guess != "N/A" else 0
+        current_balance = display if display != "N/A" else 0
+
+        if form_data.get('payment_type') == 'credit':
+            if current_balance >= total_price:
+                logger.debug("Payment processed successfully")
+                return Html(
+                    Head(Title('Payment Successful')),
+                    Body(
+                        Div(
+                            H1('Payment Successful'),
+                            P('Your payment has been processed successfully.', cls='success'),
+                            A('Go Back', href='/'),
+                            cls='container'
+                        )
+                    )
+                )
+            else:
+                logger.debug("Insufficient funds")
+                return Html(
+                    Head(Title('Payment Error')),
+                    Body(
+                        Div(
+                            H1('Payment Failed'),
+                            P('Insufficient funds in your account.', cls='error'),
+                            P(f'Required: ${total_price}, Available: ${current_balance}'),
+                            A('Try Again', href='/'),
+                            cls='container'
+                        )
+                    )
+                )
+        else:  # Bank transfer or other unsupported methods
+            logger.debug("Unsupported payment type")
+            return Html(
+                Head(Title('Payment Error')),
+                Body(
+                    Div(
+                        H1('Payment Failed'),
+                        P('Only credit card payments are supported at this time.', cls='error'),
+                        A('Try Again', href='/'),
+                        cls='container'
+                    )
+                )
+            )
+    except Exception as e:
+        logger.error(f"Error in process_payment: {e}")
+        return Html(
+            Head(Title('Server Error')),
+            Body(
+                Div(
+                    H1('Internal Server Error'),
+                    P(f'An error occurred: {str(e)}', cls='error'),
+                    A('Back to Home', href='/'),
+                    cls='container'
+                )
+            )
+        )
 
 if __name__ == "__main__":
     serve(port=5002)
