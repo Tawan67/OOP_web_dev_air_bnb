@@ -606,7 +606,7 @@ control_system = ControlSystem()
 add_user_and_payment_method(control_system)
 add_accommodation(control_system)
 make_booking(control_system)
-add_accommodation_booked_date(control_system)
+# add_accommodation_booked_date(control_system)
 
 # Get booking details
 display = control_system.get_member_list[0].get_payment_method[0].get_balance
