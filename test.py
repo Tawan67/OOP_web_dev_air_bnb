@@ -1,7 +1,7 @@
-from ..class.Accomodation import Accommodation
-from ..class.datetime import datetime
-from ..class.Booking import Booking
-from ..class.User import Member
+from Airbnb_class.Accommodation import Accommodation
+from .class.datetime import datetime
+from .class.Booking import Booking
+from .class.User import Member
 
 new_acc = Accommodation("test", "location", "description", 0)
 print(new_acc.get_acc_name)

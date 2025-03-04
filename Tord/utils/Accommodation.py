@@ -1,7 +1,4 @@
-from User import User
-from Booking import BookedDate
 from datetime import datetime
-
 
 class Accommodation:
     count_id = 1
@@ -19,6 +16,7 @@ class Accommodation:
         Accommodation.count_id += 1
 
     def add_booked_date(self, booked_date) -> str:
+        from .Booking import BookedDate
         if not isinstance(booked_date, BookedDate):
             return "Error"
         self.__booked_date.append(booked_date)
@@ -51,7 +49,7 @@ class Accommodation:
             self.__host = host
             return "Success"
 
-    # ------------------------------------------------------------------
+# ------------------------------------------------------------------
     def cal_price(self, start_date, end_date):
         # Convert HTML date strings (e.g., "2025-03-01") to datetime objects
         start = datetime.strptime(start_date, "%Y-%m-%d")
@@ -65,10 +63,9 @@ class Accommodation:
             return "Error: End date must be after start date"
 
         # Calculate total price
-        total_price = (day_count + 1) * self.__price
+        total_price = (day_count+1) * self.__price
         return total_price
-
-    # ----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 
     def get_price_accom(self, start_date, end_date, guest_amount):
         day_between = (end_date - start_date).days
@@ -77,11 +74,15 @@ class Accommodation:
         total_price = total_price + fee
         return total_price
 
-    # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
     @property
     def get_info(self):
         return self.__info
+
+    @property
+    def get_price(self):
+        return self.__price
 
     @property
     def get_id(self):
@@ -151,7 +152,7 @@ class Room(Accommodation):
             name=f"Room {room_id}",
             address=f"{hotel_address} - Floor {room_floor}",
             info=f"Room in {hotel_name}",
-            price=price,
+            price=price
         )
         self.__room_id = room_id
         self.__room_floor = room_floor
@@ -163,7 +164,7 @@ class Room(Accommodation):
 
 
 class Review:
-    def __init__(self, rating: int, user: User, message):
+    def __init__(self, rating: int, user, message):
         self.__rating = rating
         self.__user = user
         self.__message = message

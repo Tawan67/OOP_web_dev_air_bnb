@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/th3g3ntl3man/Documents/Coding/OOP_web_dev_air_bnb/class",
-      "program": "c:/Users/th3g3ntl3man/Documents/Coding/OOP_web_dev_air_bnb/class/build/Debug/outDebug",
+      "cwd": "c:/Users/th3g3ntl3man/Documents/Coding/OOP_web_dev_air_bnb/Tord",
+      "program": "c:/Users/th3g3ntl3man/Documents/Coding/OOP_web_dev_air_bnb/Tord/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
