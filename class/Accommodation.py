@@ -51,7 +51,7 @@ class Accommodation:
             self.__host = host
             return "Success"
 
-# ------------------------------------------------------------------
+    # ------------------------------------------------------------------
     def cal_price(self, start_date, end_date):
         # Convert HTML date strings (e.g., "2025-03-01") to datetime objects
         start = datetime.strptime(start_date, "%Y-%m-%d")
@@ -65,9 +65,10 @@ class Accommodation:
             return "Error: End date must be after start date"
 
         # Calculate total price
-        total_price = (day_count+1) * self.__price
+        total_price = (day_count + 1) * self.__price
         return total_price
-# ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
 
     def get_price_accom(self, start_date, end_date, guest_amount):
         day_between = (end_date - start_date).days
@@ -76,7 +77,7 @@ class Accommodation:
         total_price = total_price + fee
         return total_price
 
-# -----------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------
 
     @property
     def get_info(self):
@@ -149,8 +150,8 @@ class Room(Accommodation):
         super().__init__(
             name=f"Room {room_id}",
             address=f"{hotel_address} - Floor {room_floor}",
-            info=f"Room in {hoteln_ame}",
-            price=price
+            info=f"Room in {hotel_name}",
+            price=price,
         )
         self.__room_id = room_id
         self.__room_floor = room_floor
