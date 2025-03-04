@@ -1,8 +1,8 @@
 class Booking:
-    count = 0
+    id = 1
 
     def __init__(self, accom, date, guess, member):
-        self.__booking_id = Booking.count
+        self.__booking_id = Booking.id
         self.__accommodation = accom
         # self.__date = date วันที่ทำรายการจอง
         self.__booked_date = None
@@ -16,8 +16,11 @@ class Booking:
         # self.__pay_med เก็บ pay_med ทั้งก้อน
         self.__payment = None
         self.__pay_med = None
-        Booking.count += 1
+        Booking.id += 1
 
+    def reset_increment(self):
+        Booking.id = 1
+    
     @property
     def get_member(self):
         return self.__member
@@ -79,6 +82,24 @@ class Booking:
     def create_payment(self, price, period, paymed):
         payment = Payment(period=period, pay_med=paymed, price=price)
         return payment
+    
+    # format booking class to text format
+    def __str__(self):
+        return (
+            f'-----------------------------------'
+            f"Booking ID: {self.__booking_id}\n"
+            f"Accommodation: {self.__accommodation.get_acc_name}\n"
+            f"Check-in Date: {self.__date.get_checkindate_pretty}\n"
+            f"Check-out Date: {self.__date.get_checkoutdate_pretty}\n"
+            f"Number of Guests: {self.__guess_amount}\n"
+            f"Booking Status: {self.__booking_status}\n"
+            f"Member: {self.__member.get_user_name}\n"
+            f"Payment: {self.__payment}\n"
+            f"Payment Method: {self.__pay_med}"
+            f'-----------------------------------'
+        )
+
+    
 
 
 class BookedDate:

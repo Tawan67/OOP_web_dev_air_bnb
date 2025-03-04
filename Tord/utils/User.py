@@ -19,6 +19,8 @@ class User:
     #     self.__payment_methods.append(payment_method)
     #     return "Success"
 
+    def reset_increament(self):
+        User.count_id = 1
 
     @property
     def get_user_id(self):
@@ -38,14 +40,14 @@ class Member(User):
         super().__init__(name, email, password)
         self.__phone_num = phone_num
         self.__age = age
-        self.__pay_med = []
+        self.__payment_method = []
         self.__my_coupons = []
 
     def add_payment_method(self, payment_method):
         from .Payment import PaymentMethod
         if not isinstance(payment_method, PaymentMethod):
             return "Error"
-        self.__pay_med.append(payment_method)
+        self.__payment_method.append(payment_method)
         return "Success"
 
     def add_coupon(self, input1):
@@ -70,8 +72,8 @@ class Member(User):
         return self.__age
 
     @property
-    def get_paymed(self):
-        return self.__pay_med
+    def get_payment_method_list(self):
+        return self.__payment_method
 
 
 class Host(User):

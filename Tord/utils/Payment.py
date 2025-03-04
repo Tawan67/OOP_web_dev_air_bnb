@@ -52,12 +52,14 @@ class PaymentMethod:
     def pay(self, pray_tang):
         self.__balance -= pray_tang
         self.__point += pray_tang
-        
+    
+    @property
     def get_balance(self):
         return self.__balance
     
     def deduction(self, pray_tang):
         self.__balance -= pray_tang
+        
 
 
 class Card(PaymentMethod):

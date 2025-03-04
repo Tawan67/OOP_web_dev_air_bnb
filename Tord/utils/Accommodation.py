@@ -13,8 +13,13 @@ class Accommodation:
         self.__accom_pics = []
         self.__booked_date = []
         self.__reviews = []
+        self.__host = None
         Accommodation.count_id += 1
 
+    def reset_increament(self):
+        Accommodation.count_id = 1
+
+    
     def add_booked_date(self, booked_date) -> str:
         from .Booking import BookedDate
         if not isinstance(booked_date, BookedDate):
@@ -43,6 +48,7 @@ class Accommodation:
         return "Invalid Review"
 
     def add_host(self, host):
+        from .User import Host
         if not isinstance(host, Host):
             return "Error"
         else:
@@ -107,6 +113,12 @@ class Accommodation:
     @property
     def get_reviews(self):
         return self.__reviews
+    
+    @property
+    def get_host(self):
+        return self.__host
+
+#
 
 
 class House(Accommodation):

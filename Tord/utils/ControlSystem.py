@@ -92,11 +92,10 @@ class ControlSystem:
         new_booking = Booking(accom=accom, date=date, guess=guess,
                               member=member)
         self.__booking_list.append(new_booking)
+        
+        print(new_booking)
 
-        # Add the booked dates to the accommodation
-        # booked_date = BookedDate(check_in, check_out)
-        # accom.add_booked_date(booked_date)
-        return f"Booking created successfully Accommodation:{new_booking.get_accommodation.get_acc_name}"
+        return new_booking
 # ---------------------------------------------------
 
     """
@@ -248,8 +247,7 @@ class ControlSystem:
     def search_host_by_id(self, user_id):
         for host in self.__host_list:
             if host.get_user_id == user_id:
-                return host.get_host_name
-        pass
+                return host
 
     def search_user_to_check(self, user_name, phone, email, password, age):  # dew not sure
         for member in self.__member_list:
