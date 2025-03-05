@@ -518,3 +518,227 @@ class ControlSystem:
             )
         except Exception as e:
             return Html(P(str(e)))
+        
+    def get_html_index(self):
+        filtered_accommodation_list = []
+        for accom in self.get_accommodation_list:
+            from .Accommodation import Room
+            if not isinstance(accom, Room):
+                filtered_accommodation_list.append(accom)
+                
+        
+        css = """
+            body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+            .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #ddd; }
+            .logo { font-size: 24px; font-weight: bold; color: #ff385c; }
+            .nav-menu { display: flex; gap: 20px; }
+            .nav-menu a { text-decoration: none; color: #222; font-weight: 500; }
+            .nav-menu a:hover { color: #ff385c; }
+            .search-bar { 
+                display: flex; 
+                align-items: center; 
+                border: 1px solid #ddd; 
+                border-radius: 40px; 
+                padding: 10px 20px; 
+                width: 100%; 
+                max-width: 600px; /* Increased from 300px to 600px */
+                gap: 10px; /* Added spacing between elements */
+            }
+            .search-bar input[type="text"] { 
+                border: none; 
+                outline: none; 
+                flex-grow: 1; /* Allows text input to take available space */
+                font-size: 16px; 
+                min-width: 150px; /* Ensures text input has a minimum size */
+            }
+            .search-bar input[type="date"] { 
+                border: none; 
+                outline: none; 
+                font-size: 14px; 
+                padding: 5px; 
+            }
+            .search-bar button { 
+                border: none; 
+                background: #ff385c; 
+                color: white; 
+                padding: 8px 16px; 
+                border-radius: 20px; 
+                cursor: pointer; 
+                white-space: nowrap; /* Prevents button text from wrapping */
+            }
+            .user-menu { display: flex; align-items: center; gap: 15px; }
+            .user-icon { width: 30px; height: 30px; background-color: #ddd; border-radius: 50%; }
+            .container { padding: 20px; display: flex; flex-wrap: wrap; gap: 20px; }
+            .card { border: 1px solid #ddd; border-radius: 8px; width: 300px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+            .card img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px 8px 0 0; margin-bottom: 10px; }
+            .card h3 { margin: 0 0 10px; color: #222; }
+            .card p { margin: 5px 0; color: #555; }
+            .search-results { padding: 20px; }
+            .no-results { color: #555; font-style: italic; }
+"""
+        return (
+        Html(
+            Head(
+                Meta(charset="UTF-8"),
+                Meta(name="viewport", content="width=device-width, initial-scale=1.0"),
+                Title("Airbnb Menu Layout"),
+                Style(css)
+            ),
+            Body(
+                Header(
+                    A("Airbnb", cls="logo", href="/"),
+                    Nav(
+                        A("Stays", href="#"),
+                        A("Experiences", href="#"),
+                        A("Online Experiences", href="#"),
+                        cls="nav-menu"
+                    ),
+                    Div(
+                        Form(
+                            Input(type="text", name="search_query", placeholder="Where are you going?", required=True),
+                            Input(type="date", name="check_in", style="margin-right: 10px;",required=True),
+                            Input(type="date", name="check_out", style="margin-right: 10px;", required=True),
+                            Button("Search", type="submit"),
+                            action="/search",
+                            method="post",
+                            cls="search-bar"
+                        ),
+                        A("Become a Host", href="#"),
+                        A("Help", href="#"),
+                        Div(cls="user-icon"),
+                        cls="user-menu"
+                    ),
+                    cls="header"
+                ),
+                Div(
+                    *[A(Div(
+                        Img(src=accom.get_accom_pics[0]),
+                        H3(accom.get_acc_name),
+                        P(f"Address: {accom.get_address}"),
+                        P(f"ID: {accom.get_id}"),
+                        P(f"Price: {accom.get_price}/night"),
+                        P(f"Host: {accom.get_host.get_user_name if accom.get_host else 'No host assigned'}"),
+                        cls="card"
+                    ), style="text-decoration: none; color: inherit;", href=f"/accommodation/{accom.get_id}") for accom in filtered_accommodation_list],
+                    cls="container"
+                )
+            )
+        )
+    )
+        
+    def get_html_search_query(self, query: str, check_in: str, check_out: str):
+        results = self.search_accommodations(query)
+        filtered_accommodation_list = []
+        for accom in results:
+            from .Accommodation import Room
+            if not isinstance(accom, Room):
+                filtered_accommodation_list.append(accom)
+        css = """
+            body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+            .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #ddd; }
+            .logo { font-size: 24px; font-weight: bold; color: #ff385c; }
+            .nav-menu { display: flex; gap: 20px; }
+            .nav-menu a { text-decoration: none; color: #222; font-weight: 500; }
+            .nav-menu a:hover { color: #ff385c; }
+            .search-bar { 
+                display: flex; 
+                align-items: center; 
+                border: 1px solid #ddd; 
+                border-radius: 40px; 
+                padding: 10px 20px; 
+                width: 100%; 
+                max-width: 600px; /* Increased from 300px to 600px */
+                gap: 10px; /* Added spacing between elements */
+            }
+            .search-bar input[type="text"] { 
+                border: none; 
+                outline: none; 
+                flex-grow: 1; /* Allows text input to take available space */
+                font-size: 16px; 
+                min-width: 150px; /* Ensures text input has a minimum size */
+            }
+            .search-bar input[type="date"] { 
+                border: none; 
+                outline: none; 
+                font-size: 14px; 
+                padding: 5px; 
+            }
+            .search-bar button { 
+                border: none; 
+                background: #ff385c; 
+                color: white; 
+                padding: 8px 16px; 
+                border-radius: 20px; 
+                cursor: pointer; 
+                white-space: nowrap; /* Prevents button text from wrapping */
+            }
+            .user-menu { display: flex; align-items: center; gap: 15px; }
+            .user-icon { width: 30px; height: 30px; background-color: #ddd; border-radius: 50%; }
+            .container { padding: 20px; display: flex; flex-wrap: wrap; gap: 20px; }
+            .card { border: 1px solid #ddd; border-radius: 8px; width: 300px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+            .card img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px 8px 0 0; margin-bottom: 10px; }
+            .card h3 { margin: 0 0 10px; color: #222; }
+            .card p { margin: 5px 0; color: #555; }
+            .search-results { padding: 20px; }
+            .no-results { color: #555; font-style: italic; }
+"""
+        # Generate search results content
+        if results:
+            results_content = [
+                A(Div(
+                    Img(src=accom.get_accom_pics[0]),
+                    H3(accom.get_acc_name),
+                    P(f"Address: {accom.get_address}"),
+                    P(f"ID: {accom.get_id}"),
+                    P(f"Price: {accom.cal_price(check_in,check_out)}/night"),
+                    P(f"Host: {accom.get_host.get_user_name if accom.get_host else 'No host assigned'}"),
+                    cls="card"
+                ),style="text-decoration: none; color: inherit;", href=f"/accommodation/{accom.get_id}"
+                )
+                for accom in filtered_accommodation_list
+            ]
+        else:
+            results_content = [P("No results found for your search.", cls="no-results")]
+
+        return (
+            Html(
+                Head(
+                    Meta(charset="UTF-8"),
+                    Meta(name="viewport", content="width=device-width, initial-scale=1.0"),
+                    Title(f"Search Results for '{query}' - Airbnb"),
+                    Style(css)
+                ),
+                Body(
+                    Header(
+                        A("Airbnb", cls="logo", href="/"),
+                        Nav(
+                            A("Stays", href="#"),
+                            A("Experiences", href="#"),
+                            A("Online Experiences", href="#"),
+                            cls="nav-menu",
+                        ),
+                        Div(
+                           Form(
+                            Input(type="text", name="search_query", placeholder="Where are you going?", required=True),
+                            Input(type="date", name="check_in", style="margin-right: 10px;", required=True),
+                            Input(type="date", name="check_out", style="margin-right: 10px;", required=True),
+                            Button("Search", type="submit"),
+                            action="/search",
+                            method="post",
+                            cls="search-bar"
+                        ),
+                            A("Become a Host", href="#"),
+                            A("Help", href="#"),
+                            Div(cls="user-icon"),
+                            cls="user-menu"
+                        ),
+                        cls="header"
+                    ),
+                    Div(
+                        H2(f"Search Results for '{query}', from {check_in} to {check_out}"),
+                        Div(*results_content, cls="container"),
+                        cls="search-results"
+                    )
+                )
+            )
+        )

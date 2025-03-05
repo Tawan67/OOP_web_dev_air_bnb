@@ -34,7 +34,7 @@ def add_member_and_payment_method(control_system):
 def add_accommodation(control_system):
     reset = Accommodation(None,None,None,None)
     reset.reset_increament()
-    new_house = House("test_house", "location", "description", 6969)
+    new_house = House("test_house", "location", "description", 6969, "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJxo2NFiYcR35GzCk5T3nxA7rGlSsXvIfJwg&s")
     control_system.add_accommodation(new_house)
     new_host = Host(name="Tro", email="saygex1@gmail.com", password=12345, phone_num=1234567890, age=96)
     new_house.add_host(new_host)
@@ -128,15 +128,6 @@ async def purchase(req, booking_id: int):
     else:
         return web_control_system.generate_booking_html(result_booking, booking_id)
         
-@rt('/payment')
-def payment(req):
-    web_control_system = req.app.state.control_system
-    return Html(
-        H1("Payment Method"),
-        P(f'Bank ID : {web_control_system.get_member_list[0].get_payment_method_list[0].get_bank_id}'),
-        P(f'Balance : {web_control_system.get_member_list[0].get_payment_method_list[0].get_balance}'),
-        P(f'Name : {web_control_system.get_member_list[0].get_payment_method_list[0].get_owner.get_user_name}'),     
-    )
 
 @rt('/process_payment/booking_id={booking_id:int}', methods=['POST'])
 async def process_payment(req, booking_id: int):
@@ -148,6 +139,34 @@ async def process_payment(req, booking_id: int):
     # TODO:
     result = web_control_system.process_payment(booking_id, web_payment_method, web_payment_owner_name)
     return result
+
+@rt('/')
+def index(req):
+    web_control_system = req.app.state.control_system
+    return web_control_system.get_html_index()
+
+
+
+@rt('/payment')
+def payment(req):
+    web_control_system = req.app.state.control_system
+    return Html(
+        H1("Payment Method"),
+        P(f'Bank ID : {web_control_system.get_member_list[0].get_payment_method_list[0].get_bank_id}'),
+        P(f'Balance : {web_control_system.get_member_list[0].get_payment_method_list[0].get_balance}'),
+        P(f'Name : {web_control_system.get_member_list[0].get_payment_method_list[0].get_owner.get_user_name}'),     
+    )
+    
+@rt('/search')
+async def search(req):
+    web_control_system = req.app.state.control_system
+    form_data = await req.form()
+    web_search_query = form_data.get('search_query')
+    web_check_in = form_data.get('check_in')
+    web_check_out = form_data.get('check_out')
+    
+    return web_control_system.get_html_search_query( web_search_query, web_check_in, web_check_out)
+
 
 if __name__ == "__main__":
     
