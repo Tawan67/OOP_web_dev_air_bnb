@@ -11,7 +11,7 @@ class Accommodation:
         self.__price = price
         self.__status = False
         self.__accom_pics = []
-        self.__booked_date = []
+        self.__booked_date_list = []
         self.__reviews = []
         self.__host = None
         Accommodation.count_id += 1
@@ -24,13 +24,13 @@ class Accommodation:
         from .Booking import BookedDate
         if not isinstance(booked_date, BookedDate):
             return "Error"
-        self.__booked_date.append(booked_date)
+        self.__booked_date_list.append(booked_date)
         return "Success"
 
     def del_booked_date(self, target):
         if not isinstance(target, BookedDate):
             return "Error"
-        self.__booked_date.remove(target)
+        self.__booked_date_list.remove(target)
         return "Success"
 
     def add_accom_pics(self, pic) -> str:
@@ -56,6 +56,7 @@ class Accommodation:
             return "Success"
 
 # ------------------------------------------------------------------
+    """
     def cal_price(self, start_date, end_date):
         # Convert HTML date strings (e.g., "2025-03-01") to datetime objects
         start = datetime.strptime(start_date, "%Y-%m-%d")
@@ -71,9 +72,10 @@ class Accommodation:
         # Calculate total price
         total_price = (day_count+1) * self.__price
         return total_price
+    """
 # ----------------------------------------------------------------------
 
-    def get_price_accom(self, start_date, end_date, guest_amount):
+    def cal_price_accom(self, start_date, end_date, guest_amount):
         day_between = (end_date - start_date).days
         total_price = (day_between + 1) * self.get_price
         fee = (total_price * 5 / 100) * guest_amount
@@ -107,8 +109,19 @@ class Accommodation:
         return self.__accom_pics
 
     @property
+    def get_booked_date_string(self):
+        list = []
+        #get_booked_date_by_id
+        for x in self.__booked_date_list:
+            list.append(x.to_string)
+        return list
+    
+    @property
     def get_booked_date(self):
-        return self.__booked_date
+        return self.__booked_date_list
+
+
+
 
     @property
     def get_reviews(self):
@@ -117,6 +130,11 @@ class Accommodation:
     @property
     def get_host(self):
         return self.__host
+    @property 
+    def get_booked_date_by_id(self, id):
+        for x in self.__booked_date_list:
+            if x.get_id == id:
+                return x
 
 #
 

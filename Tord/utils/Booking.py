@@ -16,6 +16,7 @@ class Booking:
         # self.__pay_med เก็บ pay_med ทั้งก้อน
         self.__payment = None
         self.__pay_med = None
+        self.__price = None
         Booking.id += 1
 
     def reset_increment(self):
@@ -80,8 +81,21 @@ class Booking:
         pass
 
     def create_payment(self, price, period, paymed):
+        from .Payment import Payment
         payment = Payment(period=period, pay_med=paymed, price=price)
         return payment
+    
+    def cal_price(self):
+        try:
+            result = self.get_accommodation.cal_price_accom(
+                self.get_date.get_checkindate, 
+                self.get_date.get_checkoutdate, 
+                self.get_guess_amount
+            )
+            return result
+        except Exception as e:
+            return e
+        
     
     # format booking class to text format
     def __str__(self):
@@ -122,3 +136,7 @@ class BookedDate:
     @property
     def get_checkoutdate_pretty(self):
         return self.__checkoutdate.strftime("%d/%m/%Y")
+    
+    @property
+    def to_string(self):
+        return f"{self.__checkindate.strftime('%d-%m-%Y')} to {self.__checkoutdate.strftime('%d-%m-%Y')}"

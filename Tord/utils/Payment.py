@@ -1,4 +1,6 @@
 import math
+import datetime
+from dateutil.relativedelta import relativedelta
 class Payment:
 
     count = 1
@@ -46,6 +48,7 @@ class PaymentMethod:
         self.__owner = user
         self.__balance = balance
 
+    @property
     def get_bank_id(self):
         return self.__bank_id
 
@@ -57,9 +60,17 @@ class PaymentMethod:
     def get_balance(self):
         return self.__balance
     
+    @property
+    def get_owner(self):
+        return self.__owner
+    
     def deduction(self, pray_tang):
-        self.__balance -= pray_tang
-        
+        if pray_tang > self.__balance:
+            return "Not enough balance"
+        else:
+            self.__balance -= pray_tang
+            return "Success"
+        return "fail to deduction"
 
 
 class Card(PaymentMethod):

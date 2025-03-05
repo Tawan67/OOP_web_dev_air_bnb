@@ -1,2 +1,1 @@
-w(), datetime.now() + timedelta(days=5)),
-        guess=2,
+from fasthtml.common import *

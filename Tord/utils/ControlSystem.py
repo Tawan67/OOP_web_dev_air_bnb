@@ -1,3 +1,5 @@
+from fasthtml.common import *
+
 
 class ControlSystem:
     def __init__(self):
@@ -5,7 +7,7 @@ class ControlSystem:
         self.__member_list = []
         self.__host_list = []
         self.__accommodation_list = []  # stored hotel, house
-        self.__paymentmethod = None
+        self.__payment_method_list = []
         # self.__balance = None ไม่ควรมี เพราะ ค่านี้คสวรอยู่ใน paymed
 
     @property
@@ -40,8 +42,8 @@ class ControlSystem:
             self.__accommodation_list.append(accommodation)
             return "Success"
 
-    def update_payment_method(self, input1):  # tdkko
-        self.__paymentmethod = input1
+    def add_payment_method(self, input1):  # tdkko
+        self.__payment_method_list.append(input1)
         return "Success"
 
     # def search_member_by_id(self, id):
@@ -81,10 +83,7 @@ class ControlSystem:
 # FIXME:
 # ----------------------------------------------- downnnnnnnn
     def create_booking(self, accom, date, guess, member):
-        # Check availability first
-        if not self.check_accom_available(accom.get_id, date.get_checkindate, date.get_checkoutdate):
-            return "Error: Accommodation not available for these dates"
-
+        
         if accom == "Not Found":
             return "Error: Accommodation not found"
         # Create the booking
@@ -92,6 +91,10 @@ class ControlSystem:
         new_booking = Booking(accom=accom, date=date, guess=guess,
                               member=member)
         self.__booking_list.append(new_booking)
+        
+        # Check availability 
+        if not self.check_accom_available(new_booking):
+            return "Error: Accommodation not available for these dates"
         
         print(new_booking)
 
@@ -159,19 +162,20 @@ class ControlSystem:
         self.add_member(acount)
         pass
 
-    def check_accom_available(self, accom_id, requested_check_in, requested_check_out):
+    def check_accom_available(self, booking):
         # Find the accommodation
-        accom = self.search_accom_by_id(accom_id)
-        if accom == "Not Found":
+        accom = booking.get_accommodation
+        from .Accommodation import Accommodation
+        if accom == "Not Found" and not isinstance(accom, Accommodation):
             return False
 
             # Check for overlap with existing booked dates
         for booked_date in accom.get_booked_date:
-            existing_check_in = booked_date.get_checkindate()
-            existing_check_out = booked_date.get_checkoutdate()
+            existing_check_in = booked_date.get_checkindate
+            existing_check_out = booked_date.get_checkoutdate
 
             # Overlap condition: if the requested range intersects with an existing range
-            if (requested_check_in < existing_check_out) and (requested_check_out > existing_check_in):
+            if (booking.get_date.get_checkindate < existing_check_out) and (booking.get_date.get_checkoutdate > existing_check_in):
                 return False  # Not available
         return True  # Available
 # ---------------------------------------------- cal toartal price
@@ -344,3 +348,37 @@ class ControlSystem:
         result = booking.update_pay_med(paymed)
         return result
         pass
+    
+    def process_payment(self, booking_id, web_paymenth_method, web_payment_owner_name):
+        process_booking = self.search_booking_by_id(booking_id)
+        process_payment_method = self.search_payment_method_by_id(web_paymenth_method)
+        # try:
+        # except Exception as e:
+        #     return Html(P(e))
+        if (self.check_accom_available(process_booking)):              
+            # deduction
+            if web_payment_owner_name == process_payment_method.get_owner.get_user_name:
+                process_payment_method.deduction(process_booking.cal_price())
+            else:
+                return Html(P("Payment Name and ID didn't match."))
+            # update accommodation
+            booked_date = process_booking.get_date
+            add_status = process_booking.get_accommodation.add_booked_date(booked_date)
+            if add_status == "Error":
+                return Html(P("add_booked_date fail"))
+            
+            # update member booking list
+            process_booking.get_member.add_booking(process_booking)
+            
+            # return html success
+            return Html(
+                P("Payment Successful"),
+                P(f'Balance : {process_payment_method.get_balance}'),
+            )
+        else:
+            return Html(P("Accommodation not available for these dates"))
+        
+    def search_payment_method_by_id(self, payment_method_id):
+        for payment_method in self.__payment_method_list:
+            if payment_method.get_bank_id == payment_method_id:
+                return payment_method

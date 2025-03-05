@@ -42,6 +42,7 @@ class Member(User):
         self.__age = age
         self.__payment_method = []
         self.__my_coupons = []
+        self.__booking_list = []
 
     def add_payment_method(self, payment_method):
         from .Payment import PaymentMethod
@@ -56,6 +57,9 @@ class Member(User):
 
     def use_coupon(self, input1):
         pass
+    
+    def add_booking(self, input1):
+        self.__booking_list.append(input1)
 
 
 
