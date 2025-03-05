@@ -452,3 +452,69 @@ class ControlSystem:
                         max-width: 400px;"""
             )
         )
+        
+    def generate_booking_html(self, result_booking, booking_id):
+        try:
+            return (
+                Title("Request to Book"),
+                Div(
+                    H1("Request to Book"),
+                    Form(
+                        Div(
+                            H3("Your Trip"),
+                            Div(
+                                P(f"Accommodation: {self.search_booking_by_id(booking_id).get_accommodation.get_acc_name}"),
+                                style="margin-bottom: 15px;"
+                            ),
+                            Div(
+                                P(f"Accommodation Booked Date: {self.search_booking_by_id(booking_id).get_accommodation.get_booked_date_string}"),
+                                style="margin-bottom: 15px;"
+                            ),
+                            Div(
+                                P(f"Check-in: {result_booking.get_date.get_checkindate}"),
+                                style="margin-bottom: 15px;"
+                            ),
+                            Div(
+                                P(f"Check-out: {result_booking.get_date.get_checkoutdate}"),
+                                style="margin-bottom: 15px;"
+                            ),
+                            Div(
+                                P(f"Guests: {result_booking.get_guess_amount}"),
+                                style="margin-bottom: 15px;"
+                            ),
+                            Div(
+                                P(f"Price: {result_booking.cal_price()}"),
+                                style="margin-bottom: 15px;"
+                            ),
+                            style="border: 1px solid #ddd; padding: 20px; border-radius: 5px;"
+                        ),
+                        
+                        Div(
+                            H3("Your Payment Details"),
+                            Div(
+                                Label("Full Name"),
+                                Input(type="text", name="full_name", required=True),
+                                style="margin-bottom: 15px;"
+                            ),
+                            Div(
+                                Label("Bank ID"),
+                                Input(type="text", name="payment_method", required=True),
+                                style="margin-bottom: 15px;"
+                            ),
+                            Div(
+                                Label("Message to Host"),
+                                Textarea(name="message", rows="4", placeholder="Tell the host about your trip..."),
+                                style="margin-bottom: 15px;"
+                            ),
+                            style="border: 1px solid #ddd; padding: 20px; border-radius: 5px; margin-top: 20px; margin-bottom: 20px;"
+                        ),
+                        Button("Request to Book", type="submit",
+                            style="background-color: #FF5A5F; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;"),
+                        action=f"/process_payment/booking_id={result_booking.get_booking_id}",
+                        method="post"
+                    ),
+                    style="max-width: 500px; margin: 0 auto; padding: 20px;"
+                )
+            )
+        except Exception as e:
+            return Html(P(str(e)))
