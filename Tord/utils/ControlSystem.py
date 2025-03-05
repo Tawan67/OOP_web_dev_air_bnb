@@ -352,6 +352,8 @@ class ControlSystem:
     def process_payment(self, booking_id, web_paymenth_method, web_payment_owner_name):
         process_booking = self.search_booking_by_id(booking_id)
         process_payment_method = self.search_payment_method_by_id(web_paymenth_method)
+        if process_payment_method == None:
+            return self.get_html_payment_not_found(web_paymenth_method)
         # try:
         # except Exception as e:
         #     return Html(P(e))
@@ -360,7 +362,8 @@ class ControlSystem:
             if web_payment_owner_name == process_payment_method.get_owner.get_user_name:
                 process_payment_method.deduction(process_booking.cal_price())
             else:
-                return Html(P("Payment Name and ID didn't match."))
+                return self.get_html_payment_didnt_match(web_paymenth_method, web_payment_owner_name)
+            
             # update accommodation
             booked_date = process_booking.get_date
             add_status = process_booking.get_accommodation.add_booked_date(booked_date)
@@ -371,14 +374,81 @@ class ControlSystem:
             process_booking.get_member.add_booking(process_booking)
             
             # return html success
-            return Html(
-                P("Payment Successful"),
-                P(f'Balance : {process_payment_method.get_balance}'),
-            )
+            return self.get_html_purchase_sueccess()
         else:
-            return Html(P("Accommodation not available for these dates"))
+            return self.get_html_accommodation_not_available()
         
     def search_payment_method_by_id(self, payment_method_id):
         for payment_method in self.__payment_method_list:
             if payment_method.get_bank_id == payment_method_id:
                 return payment_method
+
+    def get_html_payment_didnt_match(self, web_paymenth_method, web_payment_owner_name):
+        return Html(
+            Div(
+                P("Payment Name and ID didn't match", 
+                style="font-weight: 600; font-size: 18px; margin-bottom: 8px;"),
+                P(f'Name: {web_payment_owner_name}',
+                style="font-size: 16px; color: #484848; margin: 4px 0;"),
+                P(f'Payment ID: {web_paymenth_method}',
+                style="font-size: 16px; color: #484848;"),
+                style="""background: white;
+                        padding: 20px;
+                        border-radius: 12px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        border: 1px solid #EBEBEB;
+                        color: #FF5A5F;
+                        font-family: 'Circular', -apple-system, 'Helvetica Neue', sans-serif;
+                        max-width: 400px;"""
+            )
+        )
+
+    def get_html_payment_not_found(self, web_paymenth_method):
+        return Html(
+            Div(
+                P("Payment Method Not Found",
+                style="font-weight: 600; font-size: 18px; margin-bottom: 8px;"),
+                P(f'Payment ID: {web_paymenth_method}',
+                style="font-size: 16px; color: #484848;"),
+                style="""background: white;
+                        padding: 20px;
+                        border-radius: 12px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        border: 1px solid #EBEBEB;
+                        color: #FF5A5F;
+                        font-family: 'Circular', -apple-system, 'Helvetica Neue', sans-serif;
+                        max-width: 400px;"""
+            )
+        )
+
+    def get_html_purchase_sueccess(self):
+        return Html(
+            Div(
+                P("Purchase Successful",
+                style="font-weight: 600; font-size: 18px;"),
+                style="""background: white;
+                        padding: 20px;
+                        border-radius: 12px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        border: 1px solid #EBEBEB;
+                        color: #008489;
+                        font-family: 'Circular', -apple-system, 'Helvetica Neue', sans-serif;
+                        max-width: 400px;"""
+            )
+        )
+
+    def get_html_accommodation_not_available(self):
+        return Html(
+            Div(
+                P("Accommodation not available for these dates",
+                style="font-weight: 600; font-size: 18px;"),
+                style="""background: white;
+                        padding: 20px;
+                        border-radius: 12px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        border: 1px solid #EBEBEB;
+                        color: #FF5A5F;
+                        font-family: 'Circular', -apple-system, 'Helvetica Neue', sans-serif;
+                        max-width: 400px;"""
+            )
+        )

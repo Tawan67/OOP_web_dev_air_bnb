@@ -105,7 +105,7 @@ def setup_app(app):
     add_member_and_payment_method(control_system)
     add_accommodation(control_system)
     make_booking(control_system)
-    add_accommodation_booked_date(control_system)
+    # add_accommodation_booked_date(control_system)
     print("=========================End===============================")
     return control_system
 
@@ -174,7 +174,7 @@ async def purchase(req, booking_id: int):
                         
                         Div(
                             Label("Full Name"),
-                            Input(type="text", name="fullname", required=True),
+                            Input(type="text", name="full_name", required=True),
                             style="margin-bottom: 15px;"
                         ),
                         Div(
@@ -189,12 +189,12 @@ async def purchase(req, booking_id: int):
                         ),
                         style="border: 1px solid #ddd; padding: 20px; border-radius: 5px; margin-top: 20px; margin-bottom: 20px;"
                     ),
-                    Div(
-                        Button("Request to Book", type="submit",
-                            style="background-color: #FF5A5F; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;"),
-                        action=f"/process_payment/booking_id={result_booking.get_booking_id}",
-                        method="post"
-                    )
+                    # Div(
+                    # )
+                    Button("Request to Book", type="submit",
+                        style="background-color: #FF5A5F; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;"),
+                    action=f"/process_payment/booking_id={result_booking.get_booking_id}",
+                    method="post"
                     
                     
                 ),
