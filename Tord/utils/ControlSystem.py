@@ -96,7 +96,6 @@ class ControlSystem:
         if not self.check_accom_available(new_booking):
             return "Error: Accommodation not available for these dates"
         
-        print(new_booking)
 
         return new_booking
 # ---------------------------------------------------
@@ -114,8 +113,10 @@ class ControlSystem:
 # --------------------------------------------------^^^^^^^
 
     def search_booking_by_user(self, user):
+        from .User import User
         if not isinstance(user, User):
             return "Error"
+        print (user)
         all_booking = []
         for booking in self.get_booking_list:
             if user == booking.get_member:
@@ -170,7 +171,7 @@ class ControlSystem:
             return False
 
             # Check for overlap with existing booked dates
-        for booked_date in accom.get_booked_date:
+        for booked_date in accom.get_booked_date_list:
             existing_check_in = booked_date.get_checkindate
             existing_check_out = booked_date.get_checkoutdate
 
@@ -201,6 +202,7 @@ class ControlSystem:
 # -----------------------------------------------------
 
     def search_host_by_accom(self, accom):
+        from .Accommodation import Accommodation
         if not isinstance(accom, Accommodation):
             return "Error"
         for host in self.get_host_list:
@@ -742,3 +744,88 @@ class ControlSystem:
                 )
             )
         )
+        
+        
+    def get_booking_history(self, user_id):
+        user = self.search_member_by_id(user_id)
+        if user == None:
+            return None
+        
+        booking_list = []
+        for booking in self.search_booking_by_user(user):
+            book = []
+            book.append(booking.get_booking_id)
+            book.append(booking.get_booking_status)
+            book.append(booking.get_date)
+            book.append(booking.get_accommodation.get_acc_name)
+            print(f'///////////////////////////////:{booking.get_booked_date}')
+            book.append(booking.get_booked_date.get_checkindate)
+            book.append(booking.get_booked_date.get_checkoutdate)
+            book.append(booking.get_amount)
+            booking_list.append(book)
+
+        return booking_list
+
+    def get_booking_detail(self, booking_id):
+        booking = self.search_booking_by_id(booking_id)
+        show_booking_detail = []
+        show_booking_detail.append(booking.get_booking_id)
+        show_booking_detail.append(booking.get_booking_status)
+        show_booking_detail.append(booking.get_date)
+        show_booking_detail.append(booking.get_amount)
+        
+        booked_date = booking.get_booked_date
+        accom = booking.get_accommodation
+        
+        show_booking_detail.append(booked_date.get_checkindate)
+        show_booking_detail.append(booked_date.get_checkoutdate)
+        
+        show_booking_detail.append(accom.get_acc_name)
+        show_booking_detail.append(accom.get_info)
+        show_booking_detail.append(accom.get_address)
+        
+        host = self.search_host_by_accom(accom)
+        
+        show_booking_detail.append(host.get_user_name)
+        show_booking_detail.append(host.get_phone_num)
+        
+        return show_booking_detail
+    
+    def cancel_booking(self, booking_id):
+        booking = self.search_booking_by_id(booking_id)
+        user = booking.get_member
+            
+
+        # booked_date = booking.get_booked_date
+        # accom = booking.get_accommodation
+        # print(f"before {booking.get_booking_status}")
+        # print(f"Target before {accom.get_booked_date(booked_date)}")
+        if booking.get_booking_status == "Confirmed":
+            amount = booking.get_amount
+            booked_date = booking.get_booked_date
+            accom = booking.get_accommodation
+            user_get_pay_med = user.get_pay_med
+            control_system_pay_med = self.__paymentmethod
+            self.payback(control_system_pay_med,user_get_pay_med,amount)
+            accom.del_booked_date(booked_date)
+            booking.update_booking_status("Cancelled")
+            
+        else:
+            booking.update_booking_status("Cancelled")
+            
+        return user.get_user_id
+            
+    def payback(self, system_pay_med , user_pay_med , amount , tranfer_type="default"):
+        
+        print(f"system_balance before {system_pay_med.get_balance}, user_balance before {user_pay_med.get_balance}")
+        
+        system_pay_med.update_balance(-amount)
+        user_pay_med.update_balance(+amount)
+        
+        print(f"system_balance after {system_pay_med.get_balance}, user_balance after {user_pay_med.get_balance}")
+        return "Success"
+    
+    def get_booking_by_id(self, booking_id):
+        for booking in self.get_booking_list:
+            if booking.get_booking_id == booking_id:
+                return booking

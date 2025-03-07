@@ -39,6 +39,7 @@ class Booking:
         return self.__date
 
     @property
+    
     def get_booked_date(self):
         return self.__booked_date
 
@@ -93,6 +94,14 @@ class Booking:
                 self.get_guess_amount
             )
             return result
+        except Exception as e:
+            return e
+        
+    def add_booked_date(self, date):
+        try:
+            isinstance(date, BookedDate)
+            self.__booked_date = date
+            return "Success"
         except Exception as e:
             return e
         

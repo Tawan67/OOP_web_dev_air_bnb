@@ -29,6 +29,7 @@ class Accommodation:
         return "Success"
 
     def del_booked_date(self, target):
+        from .Booking import BookedDate
         if not isinstance(target, BookedDate):
             return "Error"
         self.__booked_date_list.remove(target)
@@ -139,7 +140,7 @@ class Accommodation:
         return list
     
     @property
-    def get_booked_date(self):
+    def get_booked_date_list(self): # change from get_booked_date
         return self.__booked_date_list
 
 
@@ -157,6 +158,16 @@ class Accommodation:
         for x in self.__booked_date_list:
             if x.get_id == id:
                 return x
+            
+    def get_booked_date(self, booked_date):
+        from .Booking import BookedDate
+        if not isinstance(booked_date, BookedDate):
+            return "Error"
+        else:
+            for booked in self.get_booked_date_list:
+                if booked_date == booked:
+                    return booked
+            return "Cant find"
 
 #
 

@@ -71,6 +71,9 @@ class PaymentMethod:
             self.__balance -= pray_tang
             return "Success"
         return "fail to deduction"
+    
+    def update_balance(self, amount):
+        self.__balance += amount
 
 
 class Card(PaymentMethod):

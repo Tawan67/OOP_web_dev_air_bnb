@@ -60,24 +60,29 @@ def make_booking(control_system):
     
     control_system.create_booking(
         accom=control_system.get_accommodation_list[0],
-        date=BookedDate(datetime.now(), datetime.now() + timedelta(days=5)),
+        date=datetime.now(),
         guess=2,
         member=control_system.get_member_list[0]
     )
+    control_system.get_booking_by_id(1).add_booked_date(BookedDate(datetime.now(), datetime.now() + timedelta(days=5)))
     
     control_system.create_booking(
         accom=control_system.get_accommodation_list[2],
-        date=BookedDate(datetime.now(), datetime.now() + timedelta(days=5)),
+        date=datetime.now(),
         guess=5,
         member=control_system.get_member_list[0]
     )
+    control_system.get_booking_by_id(2).add_booked_date(BookedDate(datetime.now() + timedelta(days=6), datetime.now() + timedelta(days=10)))
     
     control_system.create_booking(
         accom=control_system.get_accommodation_list[2],
-        date=BookedDate(datetime.now() + timedelta(days=10), datetime.now() + timedelta(days=20)),
+        # date=BookedDate(datetime.now() + timedelta(days=10), datetime.now() + timedelta(days=20)),
+        date=datetime.now(),
+
         guess=10,
         member=control_system.get_member_list[0]
     )
+    control_system.get_booking_by_id(3).add_booked_date(BookedDate(datetime.now() + timedelta(days=6), datetime.now() + timedelta(days=20)))
 
 def add_accommodation_booked_date(control_system):
     new_booked_date = BookedDate(datetime.now(), datetime.now() + timedelta(days=2))
@@ -141,7 +146,9 @@ async def process_payment(req, booking_id: int):
     return result
 
 @rt('/')
-def index(req):
+async def index(req):
+    form_data = await req.form()
+    user_id = form_data.get('user_id')
     web_control_system = req.app.state.control_system
     return web_control_system.get_html_index()
 
@@ -166,6 +173,101 @@ async def search(req):
     web_check_out = form_data.get('check_out')
     
     return web_control_system.get_html_search_query( web_search_query, web_check_in, web_check_out)
+
+@rt("/booking_history/{user_id}")
+def get(user_id : int, req):
+    web_control_system = req.app.state.control_system
+    user_id = int(user_id)
+    booking_list = web_control_system.get_booking_history(user_id)
+    
+
+    if booking_list == None:
+        return Container(H1("Can't Find Booking History"),
+                Form(Button("Back to Home page", type="submit"), 
+                method="get",
+                action=f"/"
+            )
+    )
+
+
+    return Titled(
+        "Booking History",
+        Container(
+            Form(Button("Back to Home Page", type="submit"), method="get", action="/")
+        ),
+        Table(
+            Thead(Tr(Th("ID"), Th("Status"), Th("Date"), Th("Accommodation name"), Th("Check-In"), Th("Check-Out"), Th("Amount"), Th(""))),
+            Tbody(*[
+                Tr(
+                    Td(p[0]), Td(p[1]), Td(p[2]),Td(p[3]),Td(p[4]),Td(p[5]),Td(p[6]),
+                Td(
+                    Form(
+                        Button("Detail", type="submit"),
+                        method="get",
+                        action=f"/view_booking_detail/{user_id}/{p[0]}"
+                    )
+                )               
+                )
+                for p in booking_list
+            ])
+        )
+    )      
+    
+@rt('/view_booking_detail/{user_id}/{booking_id}')
+def get(user_id : int, booking_id: int):
+    web_control_system = app.state.control_system
+    detail = web_control_system.get_booking_detail(booking_id)
+    cancel_button = None
+    if detail[1] != "Cancelled" and detail[1] != "Completed":
+        cancel_button = Form(
+            Hidden(name="_method", value="PUT"),
+            Button("Cancel Booking", type="submit"),
+            method="post",
+            action=f"/cancel_booking/{detail[0]}"
+        )
+
+    if detail == None:
+        return Container(H1("Can't Find Booking"),
+                Form(Button("Back to Booking History", type="submit"), 
+                method="get",
+                action=f"/booking_history/{user_id}"
+            )
+    )
+    else:       
+        return Titled(
+        f"Booking Detail for {detail[0]}",
+        Container(
+            P(f"Booking ID: {detail[0]}"),
+            P(f"Status: {detail[1]}"),
+            P(f"date: {detail[2]}"),
+            P(f"Accommodation Name: {detail[6]}"),
+            P(f"Check-In Date: {detail[4]}"),
+            P(f"Check-Out Date: {detail[5]}"),
+            P(f"Amount: {detail[3]}"),
+            P(f"Accommodation Info: {detail[7]}"),        
+            P(f"Address: {detail[8]}"),
+            P(f"Host Name: {detail[9]}"),
+            P(f"Phone Number: {detail[10]}"),
+            cancel_button,
+            Form(Button("Back to Booking History", type="submit"), 
+                method="get",
+                action=f"/booking_history/{user_id}"
+            )
+        )
+    )
+      
+      
+      
+@rt('/cancel_booking/{booking_id}', methods=["post"])
+def cancel_booking(booking_id: int, _method: str = Form(...)):
+    if _method.lower() == "put":
+        web_control_system = app.state.control_system
+        user_id = web_control_system.cancel_booking(booking_id)
+        return RedirectResponse(f"/booking_history/{user_id}", status_code=303)
+    return "Invalid method", 405
+
+    
+
 
 
 if __name__ == "__main__":
