@@ -33,7 +33,7 @@ def setup_app(app):
     # Perform initialization
     control_system.add_member_and_payment_method()
     control_system.add_accommodation_test()
-    control_system.make_booking()
+    # control_system.make_booking()
     # control_system.add_accommodation_booked_date()
     print("=========================End===============================")
     return control_system
@@ -175,11 +175,635 @@ def update(start: str, end: str, guest_amount: str, book_id: str):
     #----
     
 @rt("/room/{accom_id}")
-def room(accom_id: int, user_id):
+async def room(accom_id: int, req):
     # assuming user host some accom
     controlsystem = app.state.control_system
-    controlsystem.get_html_room_detail(accom_id, 1)
+    form_data = await req.form()
+    user_id = form_data.get('user_id')
+    # controlsystem.get_html_room_detail(accom_id, user_id)
     #--------
+    # user_id = self.get_member_list[0].get_user_id  # 21
+    # host_id = self.get_host_list[0].get_user_id  # 31
+    process_accom = controlsystem.search_accom_by_id(accom_id)
+    host_id = process_accom.get_host.get_user_id
+    # print(user_id)
+
+    # print(user_id)
+    print(f"host_id = {host_id}")
+    print(f"user_id = {user_id}")
+    detail = controlsystem.search_accom_detail(accom_id)
+    
+
+    accommodation1 = controlsystem.search_accom_by_id(accom_id)
+
+    pic_list = accommodation1.get_accom_pics
+    print(detail[5])  # booked date
+    # pic_list = accommodation1.get_accom_pics
+    review_list1 = []
+    true_review1 = accommodation1.get_reviews
+    for i in true_review1:
+        review_list1.append(i.get_info())
+
+    print(review_list1)
+    return Html(
+        Head(
+            Title("Airbnb - Room"),
+            Script(
+                """
+                let guestCount = 0;
+
+            function increaseGuests() {
+                if (guestCount < 10) {
+                    guestCount++;
+                    document.getElementById("guest-count").textContent = guestCount;
+                    document.getElementById("guest-input").value = guestCount; // ✅ Update hidden input
+                }
+            }
+
+            function decreaseGuests() {
+                if (guestCount > 0) {
+                    guestCount--;
+                    document.getElementById("guest-count").textContent = guestCount;
+                    document.getElementById("guest-input").value = guestCount; // ✅ Update hidden input
+                }
+            }
+
+            function validateDates() {
+                const occupiedDates = JSON.parse(document.getElementById('occupied-dates').innerText);  // Get the occupied dates from the hidden div
+                
+                const checkInDate = document.getElementById('check-in').value;  // Get the selected check-in date
+                const checkOutDate = document.getElementById('check-out').value;  // Get the selected check-out date
+
+                const checkInInput = document.getElementById('check-in');
+                const checkOutInput = document.getElementById('check-out');
+
+                // Reset the validity state to make sure any previous custom validity is cleared
+                checkInInput.setCustomValidity('');
+                checkOutInput.setCustomValidity('');
+
+                // Disable dates in the check-out calendar before the selected check-in date
+                if (checkInDate) {
+                    checkOutInput.setAttribute('min', checkInDate);  // Set min date for check-out to the selected check-in date
+                }
+
+                // Check if the selected dates are in the occupied date range
+                for (const [startDate, endDate] of occupiedDates) {
+                    const start = new Date(startDate);
+                    const end = new Date(endDate);
+
+                    // Disable occupied check-in dates
+                    if (checkInDate) {
+                        const selectedCheckIn = new Date(checkInDate);
+                        // If the selected check-in date is within an occupied range, mark it as invalid
+                        if (selectedCheckIn >= start && selectedCheckIn <= end) {
+                            checkInInput.setCustomValidity("Selected check-in date is already occupied.");
+                        }
+                    }
+
+                    // Disable occupied check-out dates
+                    if (checkOutDate) {
+                        const selectedCheckOut = new Date(checkOutDate);
+                        // If the selected check-out date is within an occupied range, mark it as invalid
+                        if (selectedCheckOut >= start && selectedCheckOut <= end) {
+                            checkOutInput.setCustomValidity("Selected check-out date is already occupied.");
+                        }
+                    }
+                }
+
+                // Additional validation to ensure check-out date is after check-in date
+                if (checkInDate && checkOutDate && new Date(checkOutDate) <= new Date(checkInDate)) {
+                    checkOutInput.setCustomValidity("Check-out date must be after check-in date.");
+                }
+
+                // If there are any custom validity messages, the form won't submit
+                if (checkInInput.validationMessage || checkOutInput.validationMessage) {
+                    return false;
+                }
+                return true;
+            }
+    """
+            ),
+            Style(
+                """
+                @import url('https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@95.9,346&family=Roboto:ital,wght@0,100..900;1,100..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+                body,html {
+                    font-family: 'Fredoka', sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    overflow-x: hidden;
+                }
+                * {
+                    margin: 0;
+                    padding: 0;
+                }
+
+                .header{
+                background-color: none;
+                    width: 100%;
+                    
+                    /* Added padding for spacing */
+                    display: flex; /* Use flexbox for horizontal alignment */
+                    justify-content: center; /* Space out logo and switch button */
+                    align-items: center; /* Vertically center items */
+                }
+                .header-container {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    width: 50%;
+                    padding: 10px 5%;
+                    height:60px;
+                    position: relative; /* Ensure it stays part of the document flow */
+                }
+                .logo-button{
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    width: 50px;
+                    height: 50px;
+                }
+                .right-button {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px; /* Space between Switch and Profile buttons */
+                }
+                .switch-button{
+                background-color: white;
+                    transition: all 0.3s;
+                    font-family: 'Fredoka';
+                    font-size: 16px;
+                    border: none;
+                    border-radius: 50px;
+                    cursor: pointer;
+                    width: 150px;
+                    height: 38px;
+                    
+                }
+                .switch-button:hover{
+                background-color: #e7e7e7;
+                }
+                .profile-button{
+                    
+                    
+                }
+                .profile-button-ui{
+                    width: 70px;
+                    height: 38px;
+                    border-radius: 50px;
+                    border-color: #e7e7e7;
+                    
+                    border-width:1px;
+                    transition: all 0.2s ease-in-out;
+                    font-size: 20px;
+                    font-family: Verdana, Geneva, Tahoma, sans-serif;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    justify-content:center;
+                    background: white;
+                    color: #f5f5f5;
+                }
+                .profile-button-ui:hover{
+                    
+                    box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
+                    
+                }
+                
+                .gray-line{
+                background-color: #ededed;
+                    height: 1px; /* Set the height of the gray line */
+                    width: 100%; /* Make the gray line span the full width */
+                    margin: 0;
+                    padding: 0;
+                }
+                .below-header{
+                flex:1;
+                display:flex;
+                justify-content:center;
+                align-items: center;
+                align-content:center;
+                }
+                .Hotel-Name-Like{
+                width:50%;
+                background-color:none;
+                display:flex;
+                justify-content: center;
+                align-items:center;
+                                                                                                                                    
+                padding: 20px;
+                gap:20px;
+                }
+                .hotel-name{
+                    flex-grow:1; 
+                    flex-shrink:0;
+                    font-size: 26px;
+                    font-weight: bold;
+                }
+                
+                .share-button, .like-button {
+                transition: all 0.3s;
+                display:flex;
+                align-items: center;
+                padding : 8px 12px;
+                border-radius: 10px;
+                    font-size: 14px;
+                    cursor: pointer;
+                gap:8px;
+                }
+                .share-button:hover, .like-button:hover{
+                background-color: #e7e7e7;
+                }
+                .picture-section{
+                    width: auto; 
+                    background-color: white; /* Light gray background */
+                    display:flex;
+                    justify-content:center;
+                    align-items:center;
+                    
+                    
+                
+
+                
+                }
+                .inner-picture-section { 
+                    display: grid;
+                    grid-template-columns: 450px 180px 180px; /* First column (big image) takes 2 fractions, the others take 1 each */
+                    grid-template-rows: 180px 180px; /* Two equal rows */
+                    /* Add spacing between images */
+                    width: auto;
+                    grid-gap:5px;
+                    grid-row-gap:5px;
+                    background-color: none;
+                }
+
+                .inner-picture-section img { 
+                    width: 100%;
+                    height: 100%;
+                    border-radius:10px;
+                    
+                }
+
+                .big-image {
+                    object-fit: cover;
+                    grid-row: span 2; /* Make the first image span 2 rows */
+                }
+
+                .small-image {
+                    width: 100%;
+                    height: auto;
+                    object-fit: cover;
+                }
+                /*Info Section*/
+                .info-section{
+                    width: 100%;
+                    display:flex;
+                    justify-content:center;
+                    align-items:center;
+                    align-content:center;
+                    padding:0px 0px;
+                    
+
+                }
+                .info-room{
+                    width: 50%;
+                    display:flex;
+                    flex-direction:column;   
+                    padding: 20px 0px;
+                    gap:10px;
+                    
+                } 
+                .address{
+                    
+                    font-size: 22px;
+                    font-weight: bold;
+                }
+                .host-by-name{
+                    
+                    gap:10px;
+                    display: flex;
+                    
+                }
+                .name{
+                    font-weight: bold;
+                }
+                .hotel-about-section{
+                    background-color:none;
+                    display:flex;
+                    flex-direction:column;
+                    justify-content:center;
+                    align-items:center;
+
+                    padding: 0px 0px;
+                    width:100%;
+
+            
+                }
+                .about-this-place{
+                    width:50%;
+                    padding: 0px 0px;
+                    gap:10px;
+                    font-weight:bold;
+                }
+                .about-text{
+                    width:50%;
+                    padding: 10px 0px;
+                    gap:10px;
+                }
+                /*price-section*/
+                .price-per-night{
+                    font-weight:bold;
+                    font-size:18px;
+                }
+                .price-section{
+                    display:flex;
+                    flex-wrap: wrap;
+                    justify-content:center;
+                    align-items:center;
+                    
+                    width:auto;
+                    padding:50px 50px;
+                }
+                .price-box{
+                    box-sizing: border-box;
+                    border-style:solid;
+                    border-color:white;
+                    border-width:10px;
+                    background-color:#fffaeb;
+                    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+                    border-radius:10px;
+                    padding:15px 15px;
+                    width:25%;
+                    display:flex;
+                    flex-direction:column;
+                }
+                .in-out-date-select{
+                    display:flex;
+                    justify-content: center;
+                    align-items:center;
+                    gap:10px;
+                    padding:10px;
+            
+                }
+                
+                /* guest + - button*/
+                .guest-selection {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                    margin-top: 10px;
+                }
+
+                .minus-btn, .plus-btn {
+                    background-color: white;
+                    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+                    color: black;
+                    border: none;
+                    font-size: 18px;
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 100%;
+                    cursor: pointer;
+                }
+
+                .minus-btn:hover, .plus-btn:hover {
+                    background-color: #e7e7e7;
+                }
+
+                .guest-count {
+                    font-size: 18px;
+                    font-weight: bold;
+                    min-width: 20px;
+                    text-align: center;
+                }
+            .total-price{
+                    display:flex;
+                    justify-content:center;
+                    align-items:center;
+                    padding:15px 20px;
+            } 
+                .submit-button{
+                    display:flex;
+                    justify-content:center;
+                    align-items:center;
+                    padding:20px 20px;
+                }
+                .submit-price-button{
+                    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+                    background-color: white;
+                    transition: all 0.3s;
+                    font-family: 'Fredoka';
+                    font-size: 16px;
+                    border: none;
+                    border-radius: 50px;
+                    cursor: pointer;
+                    width: 150px;
+                    height: 38px;
+                }
+                .submit-price-button:hover{
+                background-color: #e7e7e7;
+                }
+
+                
+                
+                        
+                            """
+            ),
+        ),
+        Body(
+            Div(
+                Div(
+                    A(
+                        Button(
+                            Img(
+                                src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Airbnb_Logo_B%C3%A9lo.svg/800px-Airbnb_Logo_B%C3%A9lo.svg.png",
+                                width=90,
+                            ),
+                            cls="logo-button",
+                            # style="background: none; border: none; cursor: pointer; position: absolute; top: 20px; left: 25%; width:50px; height:50px"
+                        ),
+                        href="/",
+                    ),
+                    Div(
+                        A(
+                            Button("Switch to Hosting", cls="switch-button"),
+                            href=f"/Hosting/{host_id}",
+                        ),
+                        Div(
+                            Button(
+                                Img(
+                                    src="https://www.freeiconspng.com/thumbs/menu-icon/menu-icon-24.png",
+                                    width=20,
+                                ),
+                                cls="profile-button-ui",
+                            ),
+                            cls="profile-button",
+                        ),
+                        cls="right-button",  # group switch button and profile button
+                    ),
+                    cls="header-container",
+                ),
+                cls="header",
+            ),
+            # grey line
+            Div(cls="gray-line"),
+            Div(
+                Div(
+                    Div(
+                        detail[0],
+                        cls="hotel-name",
+                    ),
+                    Div(
+                        Img(
+                            src="https://static-00.iconduck.com/assets.00/share-ios-icon-373x512-o947u0eq.png",
+                            width=13,
+                        ),
+                        "Share",
+                        cls="share-button",
+                    ),
+                    Div(
+                        Img(
+                            src="https://pngfre.com/wp-content/uploads/Black-Heart-2.png",
+                            width=20,
+                        ),
+                        "Like",
+                        cls="like-button",
+                    ),
+                    cls="Hotel-Name-Like",
+                ),
+                cls="below-header",
+            ),
+            #######################           Picture          ########################
+            Div(
+                Div(
+                    Img(
+                        src=pic_list[0],
+                        cls="big-image",
+                    ),
+                    Div(
+                        Img(
+                            src=pic_list[1],
+                            cls="small-image",
+                        ),
+                        Img(
+                            src=pic_list[2],
+                            cls="small-image",
+                        ),
+                    ),
+                    Div(
+                        Img(
+                            src=pic_list[3],
+                            cls="small-image",
+                        ),
+                        Img(
+                            src=pic_list[4],
+                            cls="small-image",
+                        ),
+                    ),
+                    cls="inner-picture-section",
+                ),
+                cls="picture-section",
+            ),
+            ############################    Info    ###################################
+            Div(
+                Div(
+                    Div(detail[2], cls="address"),
+                    Div(
+                        Div("Hosted by ", cls="host-by"),
+                        Div(detail[1], cls="name"),
+                        cls="host-by-name",
+                    ),
+                    cls="info-room",
+                ),
+                cls="info-section",
+            ),
+            Div(
+                Div("About this place :", cls="about-this-place"),
+                Div(
+                    detail[3],
+                    cls="about-text",
+                ),
+                cls="hotel-about-section",
+            ),
+            #######################price box###########################
+            Div(
+                Form(
+                    Div(
+                        f"{accommodation1.get_price} night",
+                        Input(
+                            type="hidden",
+                            name="price-per-night",
+                            value=f"{accommodation1.get_price}",
+                        ),
+                        cls="price-per-night",
+                    ),
+                    Div(
+                        Input(
+                            type="date",
+                            cls="check-in-date",
+                            required=True,
+                            id="check-in",
+                            name="check-in",
+                            onchange="validateDates()",
+                        ),
+                        Input(
+                            type="date",
+                            cls="check-out-date",
+                            required=True,
+                            id="check-out",
+                            name="check-out",
+                            onchange="validateDates()",
+                        ),
+                        cls="in-out-date-select",
+                    ),
+                    Div(
+                        "Guests :",
+                        Button(
+                            "-",
+                            cls="minus-btn",
+                            onclick="decreaseGuests()",
+                            type="button",
+                        ),
+                        Span("0", id="guest-count", cls="guest-count"),
+                        Button(
+                            "+",
+                            cls="plus-btn",
+                            onclick="increaseGuests()",
+                            type="button",
+                        ),
+                        # ✅ Hidden input to store guest count
+                        Input(
+                            type="hidden",
+                            name="guest-count",
+                            id="guest-input",  # This will be updated dynamically
+                            value="0",
+                        ),
+                        cls="guest-selection",
+                    ),
+                    # Div("", cls="total-price"),
+                    Div(
+                        Button(
+                            "Submit",
+                            type="submit",
+                            cls="submit-price-button",
+                            id="submit-btn",
+                        ),
+                        cls="submit-button",
+                    ),
+                    # ✅ เพิ่ม div ซ่อนค่า occupied_dates ไว้
+                    # Div(
+                    #     json.dumps(detail[5]),
+                    #     id="occupied-dates",
+                    #     style="display:none;",
+                    # ),
+                    cls="price-box",
+                    method="post",
+                    action=f"/price_summary/{user_id}/{accom_id}",
+                ),
+                cls="price-section",
+            ),
+        ),
+    )
 
 @rt("/Hosting/{user_id}")
 def host(user_id: int):
@@ -208,7 +832,35 @@ def post_bookin(
     guests: str,
 ):
     controlsystem = app.state.control_system
-    controlsystem.get_html_create_booking(user_id, check_in, check_out, accom_id, total_price, guests)
+    # controlsystem.get_html_create_booking(user_id, check_in, check_out, accom_id, total_price, guests)
+    
+    #-----
+    print(
+        f"Received data: user_id={user_id}, check_in={check_in}, check_out={check_out}, accom_id={accom_id}, total_price={total_price}, guests={guests}"
+    )
+    print(type(guests))
+    print(type(total_price))
+    try:
+
+        guests = int(guests)  # Ensure it's an integer
+        total_price = float(total_price)  # Ensure price is an integer
+    except ValueError:
+        return "Invalid data received", 400
+    booking_item = controlsystem.create_booking(
+        user_id, check_in, check_out, accom_id, total_price, guests
+    )
+    print(type(booking_item))
+    if isinstance(booking_item, str):
+        return P(booking_item)
+    booking_id = booking_item.get_booking_id
+    
+    return Div(Form(
+        # Input(type="hidden", name="user_id", value=f"{user_id}"),
+        # Input(type="hidden", name="booking_id", value=f"{booking_id}"),
+        Button("Pay", type="submit", cls="reserve-shit"),
+        method = "get",
+        action = f"/booking/{booking_id}",
+    ))
     
 @rt("/update_accommodation_status")
 def get():
@@ -540,6 +1192,195 @@ def get(name: str, email: str, phone_num: str, password: str, age):
     }
     response.body = urlencode(form_data).encode('utf-8')
     return response
+
+@rt("/price_summary/{user_id}/{accom_id}", methods=["POST"])
+async def post(user_id: int, accom_id: int, request: Request):
+    print(f"accom id in price = {accom_id}")
+    controlsystem = app.state.control_system
+    accom_name = controlsystem.search_accomodation_by_id(accom_id).get_acc_name
+    accom_address = controlsystem.search_accom_by_id(accom_id).get_address
+    # print(accom_name)
+    form_data = (
+        await request.form()
+    )  # ✅ Retrieve the submitted form data # wait until the form data is available
+
+    # ✅ Extract values from the form
+    price_per_night = form_data.get("price-per-night")
+    check_in = form_data.get("check-in")
+    check_out = form_data.get("check-out")
+    guests = form_data.get("guest-count")
+    check_in_date = datetime.strptime(form_data.get("check-in"), "%Y-%m-%d")
+    check_out_date = datetime.strptime(form_data.get("check-out"), "%Y-%m-%d")
+    guests_int = int(form_data.get("guest-count"))
+    # print(check_in)
+    # print(check_out)
+    total_price = controlsystem.find_total_price(
+        accom_id, check_in_date, check_out_date, guests_int
+    )
+    print(total_price)
+    return Html(
+        Head(
+            Title("Airbnb - Confirm Pay"),
+            Style(
+                """
+                @import url('https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@95.9,346&family=Roboto:ital,wght@0,100..900;1,100..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+                body,html {
+                    font-family: 'Fredoka', sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    overflow-x: hidden;
+                }
+                * {
+                    margin: 0;
+                    padding: 0;
+                }
+
+                .header{
+                   background-color: none;
+                    width: 100%;
+                    
+                     /* Added padding for spacing */
+                    display: flex; /* Use flexbox for horizontal alignment */
+                    justify-content: center; /* Space out logo and switch button */
+                    align-items: center; /* Vertically center items */
+                  }
+                  .header-container {
+                    
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    width: 100%;
+                    padding: 10px 5%;
+                    height:60px;
+                    position: relative; /* Ensure it stays part of the document flow */
+                }
+                .logo-button{
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    width: 50px;
+                    height: 50px;
+                  }
+                .gray-line{
+                  background-color: #ededed;
+                    height: 1px; /* Set the height of the gray line */
+                    width: 100%; /* Make the gray line span the full width */
+                    margin: 0;
+                    padding: 0;
+                  }
+                .price-section{
+                    display:flex;
+                    flex-wrap: wrap;
+                    justify-content:center;
+                    align-items:center;
+                    
+                    width:auto;
+                    padding:50px 50px;
+                }
+                .price-box{
+                    gap:20px;
+                    box-sizing: border-box;
+                    border-style:solid;
+                    border-color:white;
+                    border-width:10px;
+                    background-color:#fffaeb;
+                    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+                    border-radius:10px;
+                    padding:15px 15px;
+                    width:25%;
+                    display:flex;
+                    flex-direction:column;
+                }
+                .accom-name{
+                    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+                    border-radius:10px;
+                    font-size:20px;
+                    font-weight:bold;
+                    background-color:#ffffff;
+                    padding:20px;
+                }
+                .line{
+                    border: none; /* Removes default border */
+                    border-top: 2px solid #ededed; /* Change color and thickness */
+                    
+                
+                }
+                .total-price{
+                    font-size:20px;
+                    font-weight:bold;
+                    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+                    border-radius:10px;
+                    font-size:20px;
+                    font-weight:bold;
+                    background-color:#ffffff;
+                    padding:20px;
+                }
+                .form-shit{
+                    gap:20px;
+                    display:flex;
+                    justify-content:center;
+                    flex-direction:column;
+                }
+                .reserve-shit{
+                    
+                }
+                  """
+            ),
+        ),
+        Body(
+            Div(
+                Div(
+                    A(
+                        Button(
+                            Img(
+                                src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Airbnb_Logo_B%C3%A9lo.svg/800px-Airbnb_Logo_B%C3%A9lo.svg.png",
+                                width=90,
+                            ),
+                            cls="logo-button",
+                            # style="background: none; border: none; cursor: pointer; position: absolute; top: 20px; left: 25%; width:50px; height:50px"
+                        ),
+                        href="/",
+                    ),
+                    cls="header-container",
+                ),
+                cls="header",
+            ),
+            # grey line
+            Div(cls="gray-line"),
+            Div(
+                Div(
+                    Form(
+                        Div(f"{accom_name}, {accom_address}", cls="accom-name"),
+                        Div(f"Price per night : {price_per_night} ฿"),
+                        Hr(cls="line"),
+                        Div(f"Check-in-date : {check_in}"),
+                        Hr(cls="line"),
+                        Div(f"Check-out-date : {check_out}"),
+                        Hr(cls="line"),
+                        Div(f"Guests : {guests}"),
+                        Hr(cls="line"),
+                        Div(f"Total Price: {total_price} ฿", cls="total-price"),
+                        ######
+                        Input(type="hidden", name="user_id", value=f"{user_id}"),
+                        Input(type="hidden", name="check_in", value=f"{check_in}"),
+                        Input(type="hidden", name="check_out", value=f"{check_out}"),
+                        Input(type="hidden", name="accom_id", value=f"{accom_id}"),
+                        Input(
+                            type="hidden", name="total_price", value=f"{total_price}"
+                        ),
+                        Input(type="hidden", name="guests", value=f"{guests}"),
+                        Button("Reserve", type="submit", cls="reserve-shit"),
+                        method="post",
+                        action=f"/create_booking",
+                        cls="form-shit",
+                    ),
+                    cls="price-box",
+                ),
+                cls="price-section",
+            ),
+        ),
+    )
+
 
 if __name__ == "__main__":
     

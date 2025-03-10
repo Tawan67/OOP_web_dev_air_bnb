@@ -140,22 +140,20 @@ class ControlSystem:
 
 # FIXME:
 # ----------------------------------------------- downnnnnnnn
-    def create_booking(self, accom, date, guess, member):
-        
-        if accom == "Not Found":
-            return "Error: Accommodation not found"
-        # Create the booking
+    # def create_booking(self, guest_amount, accom_id, price, menber_id,check_in,check_out):
+    def create_booking(self, user_id, check_in, check_out, accom_id, total_price, guests):
+        # guest_amount = int(guest_amount)
+        price = int(total_price)
+        accom_id = int(accom_id)
+        member = self.search_member_by_id(user_id)
+        accom = self.search_accom_by_id(accom_id)
         from .Booking import Booking
-        new_booking = Booking(accom=accom, date=date, guess=guess,
-                              member=member)
-        self.__booking_list.append(new_booking)
-        
-        # Check availability 
-        if not self.check_accom_available(new_booking):
-            return "Error: Accommodation not available for these dates"
-        
+        booking_item = Booking(accom=accom,
+                               guess=guests, member=member)
+        booking_item.update_date(check_in,check_out)
+        self.add_booking(booking_item)
 
-        return new_booking
+        return booking_item
 # ---------------------------------------------------
 
     """
@@ -248,6 +246,7 @@ class ControlSystem:
 
     def find_total_price(self, accom_id, start_date, end_date, guest_amount):
         accommodation = self.search_accomodation_by_id(accom_id)
+        from .Accommodation import House, Hotel
         if isinstance(accommodation, House):
             total_price = accommodation.get_price_accom(
                 start_date, end_date, guest_amount
@@ -1102,7 +1101,15 @@ class ControlSystem:
         reset = Accommodation(None,None,None,None)
         reset.reset_increament()
         new_house = House("test_house", "location", "description", 6969, "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJxo2NFiYcR35GzCk5T3nxA7rGlSsXvIfJwg&s")
-        
+        accom_pics = [
+            "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg",
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4wLkW7-Z5PXiWG6VF7BjPpGTjmVIZwZHo3Zb5vJf8nppOzQhjfRdx2GTAfr6JaO1uHeA&usqp=CAU",
+            "https://t4.ftcdn.net/jpg/09/22/37/79/360_F_922377968_S7Y7lesMSbv91kQtO2u1GET0bUtgOrL1.jpg",
+            "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+            "https://www.brightonhomes-idaho.com/2020/wp-content/uploads/2020/03/Available_Homes-600x400.jpg",
+        ]
+        for pic in accom_pics:
+            new_house.add_accom_pics(pic)
         self.add_accommodation(new_house)
         
         new_host = Host(name="Tro", email="saygex1@gmail.com", password=12345, phone_num=1234567890, age=96)
@@ -2878,8 +2885,8 @@ class ControlSystem:
             ),
         )
         
-    def get_html_create_booking(user_id, check_in, check_out, accom_id, total_price, guests):
-        controlsystem = Self
+    def get_html_create_booking(self,user_id, check_in, check_out, accom_id, total_price, guests):
+        controlsystem = self
         print(
             f"Received data: user_id={user_id}, check_in={check_in}, check_out={check_out}, accom_id={accom_id}, total_price={total_price}, guests={guests}"
         )
@@ -2891,11 +2898,21 @@ class ControlSystem:
             total_price = float(total_price)  # Ensure price is an integer
         except ValueError:
             return "Invalid data received", 400
-        booking_status = controlsystem.create_booking(
+        booking_item = controlsystem.create_booking(
             user_id, check_in, check_out, accom_id, total_price, guests
         )
-        print(booking_status)
-        pass
+        print(booking_item)
+        if isinstance(booking_item, str):
+            return P(booking_item)
+        booking_id = booking_item
+        
+        return Div(Form(
+            # Input(type="hidden", name="user_id", value=f"{user_id}"),
+            # Input(type="hidden", name="booking_id", value=f"{booking_id}"),
+            Button("Pay", type="submit", cls="reserve-shit"),
+            method = "get",
+            action = f"/booking/{booking_id}",
+        ))
 
 
     def show_accom_to_update(self):
