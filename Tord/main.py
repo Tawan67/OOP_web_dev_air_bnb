@@ -174,7 +174,7 @@ def update(start: str, end: str, guest_amount: str, book_id: str):
     return Redirect(f"/booking/{book_id}")
     #----
     
-@rt("/room/{accom_id}")
+@rt("/accommodation/{accom_id}")
 async def room(accom_id: int, req):
     # assuming user host some accom
     controlsystem = app.state.control_system

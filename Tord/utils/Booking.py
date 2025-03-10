@@ -176,7 +176,7 @@ class Booking:
             f"Check-out Date: {self.__booked_date.get_checkoutdate_pretty}\n"
             f"Number of Guests: {self.__guess_amount}\n"
             f"Booking Status: {self.__booking_status}\n"
-            f"Member: {self.__member.get_user_name}\n"
+            # f"Member: {self.__member.get_user_name}\n"
             f"Payment: {self.__payment}\n"
             f"Payment Method: {self.__pay_med}"
             f"Price : {self.__price}"

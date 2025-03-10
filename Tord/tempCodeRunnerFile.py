@@ -1,1 +1,1 @@
-/booking_history/
+payment/booking

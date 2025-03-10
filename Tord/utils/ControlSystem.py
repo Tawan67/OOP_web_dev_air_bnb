@@ -1119,6 +1119,8 @@ class ControlSystem:
         print(f'Accommodation : {new_house.get_acc_name},ID : {new_house.get_id}, Host : {new_host.get_user_name}')    
         
         new_hotel = Hotel("test_hotel", "location_hotel", "description_hotel")
+        for pic in accom_pics:
+            new_hotel.add_accom_pics(pic)
         self.add_accommodation(new_hotel)
         new_hotel.add_host(new_host)
         new_room = Room(room_id="1", room_floor=1, price=1000, hotel_address="location_hotel", hotel_name="test_hotel")
@@ -1516,6 +1518,11 @@ class ControlSystem:
                                     Td(B("total",style="background-color:white;color:black;")),
                                     Td(B("$"+self.get_all_price(book_id),style="background-color:white;color:black;"))   
                                 ),
+                                Tr(Form(
+                                    Button("Pay",style="background-color:white;color:black;border: 2px solid black;border-radius: 8px;"),
+                                    method="post",
+                                    action=f"/purchase/booking_id={book_id}"
+                                )),
                                 style="background-color:white;"
                             ),
                             header=H4("Price Details",
