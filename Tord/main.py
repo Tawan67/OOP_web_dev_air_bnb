@@ -21,7 +21,11 @@ from utils.User import Member
 my_booking = None
 
 # Initialize the app
-app, rt = fast_app()
+app, rt = fast_app(
+    middleware=[
+        Middleware(SessionMiddleware, secret_key="your-secret-key-here", max_age=3600)  # 1-hour session
+    ]
+)
 
 # Setup function to initialize control_system
 # @app.on_event("startup")
@@ -58,8 +62,9 @@ async def monitor(req):
 async def purchase(req, booking_id: int):
     
     web_control_system = req.app.state.control_system
-    form_data = await req.form()
-    web_user_id = form_data.get('user_id')
+    # form_data = await req.form()
+    # web_user_id = form_data.get('user_id')
+    web_user_id = req.session.get("user_id")
     result_booking = web_control_system.search_booking_by_id(booking_id)
     if result_booking == 'cant find':
         return Html(P(result_booking))
@@ -83,8 +88,10 @@ async def process_payment(req, booking_id: int):
 
 @rt('/')
 async def index(req):
-    form_data = await req.form()
-    user_id = form_data.get('user_id')
+    user_id = req.session.get("user_id")
+    if not user_id:
+        return RedirectResponse("/log_in", status_code=303)  # Redirect to login if not authenticated
+    
     web_control_system = req.app.state.control_system
     return web_control_system.get_html_index(user_id)
 
@@ -92,8 +99,9 @@ async def index(req):
 @rt('/payment/add')
 async def add_payment(req):
     web_control_system = req.app.state.control_system
-    form_data = await req.form()
-    web_user_id = form_data.get('user_id')
+    # form_data = await req.form()
+    # web_user_id = form_data.get('user_id')
+    web_user_id = req.session.get("user_id")
     return web_control_system.get_html_add_payment(web_user_id)
     # return Html(P(f"user_id : {web_user_id}"))
 
@@ -104,7 +112,8 @@ async def add_payment_process(req):
     web_bank_id = form_data.get('bank_id')
     web_expired_date = form_data.get('expired_date')
     web_vcc_number = form_data.get('vcc_number')
-    web_user_id = form_data.get('user_id')
+    # web_user_id = form_data.get('user_id')
+    web_user_id = req.session.get("user_id")
     return web_control_system.get_html_add_payment_process(web_user_id,web_bank_id, web_expired_date, web_vcc_number)
     # return Html(P(f"user_id : {web_user_id}"),
     #             P(f"bank_id : {web_bank_id}"),
@@ -116,16 +125,17 @@ async def add_payment_process(req):
 async def search(req):
     web_control_system = req.app.state.control_system
     form_data = await req.form()
+    user_id = req.session.get("user_id")
     web_search_query = form_data.get('search_query')
     web_check_in = form_data.get('check_in')
     web_check_out = form_data.get('check_out')
     
-    return web_control_system.get_html_search_query( web_search_query, web_check_in, web_check_out)
+    return web_control_system.get_html_search_query( web_search_query, web_check_in, web_check_out, user_id)
 
 @rt("/booking_history/{user_id}")
 def get(user_id : int, req):
     web_control_system = req.app.state.control_system
-    user_id = int(user_id)
+    user_id = req.session.get("user_id")
     return web_control_system.get_html_booking_history(user_id)
     #---------------
     
@@ -179,7 +189,7 @@ async def room(accom_id: int, req):
     # assuming user host some accom
     controlsystem = app.state.control_system
     form_data = await req.form()
-    user_id = form_data.get('user_id')
+    user_id = req.session.get("user_id")
     # controlsystem.get_html_room_detail(accom_id, user_id)
     #--------
     # user_id = self.get_member_list[0].get_user_id  # 21
@@ -806,7 +816,8 @@ async def room(accom_id: int, req):
     )
 
 @rt("/Hosting/{user_id}")
-def host(user_id: int):
+def host(user_id: int, req):
+    user_id = req.session.get("user_id")
     controlsystem = app.state.control_system
     controlsystem.get_html_hosting(user_id)
     #--------
@@ -1030,33 +1041,37 @@ def get(): return Div(
 
 
 @rt('/create_account')
-def post(name: str, email: str, phone_num: str, password: str, age):
+def post(name: str, email: str, phone_num: str, password: str, age, req):
     control = app.state.control_system
     result = control.create_account(name, email, password, phone_num, age)
-    id = control.get_member_id(name, email, phone_num, password)
-    if not id:
+    user_id = control.get_member_id(name, email, phone_num, password)
+    if not user_id:
         return Div(H1("Error: Could not retrieve user ID"), A(Button("Try Again"), href="/sign_up"))
-    return Div(H1(f"create Account {result} and yor id is {id}", style="""
-                    background-color:white;
-                    color:black;"""),
-               Form(
-                   Input(type="hidden", name="user_id", value=id),
-                   Button("Home", type="submit", style="width:50%"),
-                   method="post",
-                   action="/",
+    # return Div(H1(f"create Account {result} and yor id is {id}", style="""
+    #                 background-color:white;
+    #                 color:black;"""),
+    #            Form(
+    #                Input(type="hidden", name="user_id", value=id),
+    #                Button("Home", type="submit", style="width:50%"),
+    #                method="post",
+    #                action="/",
                    
-               ),
-            #    A(Button("Home"), href=f"/"),
-               style="""
-                    background-color:white;
-                    color:black;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    text-align: center;
-                    height:100vh;
-                    """)
+    #            ),
+    #         #    A(Button("Home"), href=f"/"),
+    #            style="""
+    #                 background-color:white;
+    #                 color:black;
+    #                 display: flex;
+    #                 flex-direction: column;
+    #                 align-items: center;
+    #                 justify-content: center;
+    #                 text-align: center;
+    #                 height:100vh;
+    #                 """)
+    # TODO: redirect to home with session
+    # Store user_id in session
+    req.session["user_id"] = str(user_id)  # Convert to string for session storage
+    return RedirectResponse("/", status_code=303)
 
 @rt('/log_in')
 def get():
@@ -1135,7 +1150,7 @@ def get():
             """
             ),
             Button("Log in", type="submit", style="width:50%"), Hr("Or"),
-            method="get",
+            method="post",
             action="/check_for_log_in",
             style="padding:15px;width:100%"
 
@@ -1171,30 +1186,29 @@ def get():
     """)
 
 @rt('/check_for_log_in')
-def get(name: str, email: str, phone_num: str, password: str, age):
-    from urllib.parse import urlencode
+async def post(req):
+    form_data = await req.form()
+    name = form_data.get('name')
+    email = form_data.get('email')
+    phone_num = form_data.get('phone_num')
+    password = form_data.get('password')
+    
     control = app.state.control_system
-    id = control.get_member_id(name, email, phone_num, password)
-    if not id:
+    user_id = control.get_member_id(name, email, phone_num, password)
+    if not user_id:
         return Div(H1("Error: Login Fail"), A(Button("Try Again"), href="/log_in"))
     
-    # Create a response with form data
-    response = RedirectResponse(
-        url="/",
-        status_code=303,  # Use 303 See Other for POST redirect
-        headers={
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
-    )
-    # Add form data to the redirect
-    form_data = {
-        "user_id": id
-    }
-    response.body = urlencode(form_data).encode('utf-8')
-    return response
+    req.session["user_id"] = str(user_id)
+    return RedirectResponse("/", status_code=303)
+
+@rt('/logout')
+def get(req):
+    req.session.clear()  # Clear the session
+    return RedirectResponse("/log_in", status_code=303)
 
 @rt("/price_summary/{user_id}/{accom_id}", methods=["POST"])
 async def post(user_id: int, accom_id: int, request: Request):
+    user_id = request.session.get("user_id")
     print(f"accom id in price = {accom_id}")
     controlsystem = app.state.control_system
     accom_name = controlsystem.search_accomodation_by_id(accom_id).get_acc_name
