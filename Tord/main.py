@@ -2,7 +2,7 @@ from fasthtml.common import *
 from datetime import datetime, timedelta
 from calendar import monthrange, weekday
 
-from utils.ControlSystem import ControlSystem 
+from utils.ControlSystem import ControlSystem
 from utils.Booking import Booking
 from utils.Payment import Payment
 from utils.Payment import PaymentMethod
@@ -25,11 +25,13 @@ app, rt = fast_app()
 
 # Setup function to initialize control_system
 # @app.on_event("startup")
+
+
 def setup_app(app):
     print("=========================Start===============================")
     control_system = ControlSystem()
     app.state.control_system = control_system
-    
+
     # Perform initialization
     control_system.add_member_and_payment_method()
     control_system.add_accommodation_test()
@@ -38,8 +40,10 @@ def setup_app(app):
     print("=========================End===============================")
     return control_system
 
+
 # Call setup once when the app starts
 setup_app(app)
+
 
 def get_style():
     return Style("""
@@ -47,6 +51,7 @@ def get_style():
         .form-group { margin-bottom: 15px; }
         .success { color: green; }
     """)
+
 
 @rt('/monitor', methods=['GET'])
 async def monitor(req):
@@ -56,7 +61,7 @@ async def monitor(req):
 
 @rt('/purchase/booking_id={booking_id:int}', methods=['POST'])
 async def purchase(req, booking_id: int):
-    
+
     web_control_system = req.app.state.control_system
     form_data = await req.form()
     web_user_id = form_data.get('user_id')
@@ -65,7 +70,7 @@ async def purchase(req, booking_id: int):
         return Html(P(result_booking))
     else:
         return web_control_system.generate_booking_html(result_booking, booking_id, web_user_id)
-        
+
 
 @rt('/process_payment/booking_id={booking_id:int}', methods=['POST'])
 async def process_payment(req, booking_id: int):
@@ -76,19 +81,21 @@ async def process_payment(req, booking_id: int):
     web_payment_vcc = form_data.get('vcc_number')
     web_payment_type = form_data.get('payment_type')
     web_period = form_data.get('period')
-    
+
     # TODO:
-    result = web_control_system.process_payment(booking_id, web_payment_method, web_payment_expired_date, web_payment_vcc, web_payment_type, web_period)
+    result = web_control_system.process_payment(
+        booking_id, web_payment_method, web_payment_expired_date, web_payment_vcc, web_payment_type, web_period)
     return result
 
+
 @rt('/')
-async def index(req):
+async def index(req, user_id):
     form_data = await req.form()
     user_id = form_data.get('user_id')
     web_control_system = req.app.state.control_system
     return web_control_system.get_html_index(user_id)
 
-    
+
 @rt('/payment/add')
 async def add_payment(req):
     web_control_system = req.app.state.control_system
@@ -96,6 +103,7 @@ async def add_payment(req):
     web_user_id = form_data.get('user_id')
     return web_control_system.get_html_add_payment(web_user_id)
     # return Html(P(f"user_id : {web_user_id}"))
+
 
 @rt('/payment/add/process', methods=['POST'])
 async def add_payment_process(req):
@@ -105,13 +113,13 @@ async def add_payment_process(req):
     web_expired_date = form_data.get('expired_date')
     web_vcc_number = form_data.get('vcc_number')
     web_user_id = form_data.get('user_id')
-    return web_control_system.get_html_add_payment_process(web_user_id,web_bank_id, web_expired_date, web_vcc_number)
+    return web_control_system.get_html_add_payment_process(web_user_id, web_bank_id, web_expired_date, web_vcc_number)
     # return Html(P(f"user_id : {web_user_id}"),
     #             P(f"bank_id : {web_bank_id}"),
     #             P(f"expired_date : {web_expired_date}"),
     #             P(f"vcc_number : {web_vcc_number}"))
 
-    
+
 @rt('/search')
 async def search(req):
     web_control_system = req.app.state.control_system
@@ -119,25 +127,25 @@ async def search(req):
     web_search_query = form_data.get('search_query')
     web_check_in = form_data.get('check_in')
     web_check_out = form_data.get('check_out')
-    
-    return web_control_system.get_html_search_query( web_search_query, web_check_in, web_check_out)
+
+    return web_control_system.get_html_search_query(web_search_query, web_check_in, web_check_out)
+
 
 @rt("/booking_history/{user_id}")
-def get(user_id : int, req):
+def get(user_id: int, req):
     web_control_system = req.app.state.control_system
     user_id = int(user_id)
     return web_control_system.get_html_booking_history(user_id)
-    #---------------
-    
-    
+    # ---------------
+
+
 @rt('/view_booking_detail/{user_id}/{booking_id}')
-def get(user_id : int, booking_id: int):
+def get(user_id: int, booking_id: int):
     web_control_system = app.state.control_system
     return web_control_system.get_html_view_booking_detail(user_id, booking_id)
-    #------
-      
-      
-      
+    # ------
+
+
 @rt('/cancel_booking/{booking_id}', methods=["post"])
 def cancel_booking(booking_id: int, _method: str = Form(...)):
     if _method.lower() == "put":
@@ -165,15 +173,18 @@ def get(book_id: str):
     web_control_system = app.state.control_system
     return web_control_system.get_html_edit_date_guest(book_id)
 
+
 @rt('/update_date_guest/{book_id}')
 def update(start: str, end: str, guest_amount: str, book_id: str):
     # อัปเดตวันที่และจำนวนแขกใน booking
     # return P(f"{book_id}")
     web_control_system = app.state.control_system
-    web_control_system.get_html_update_date_guest(start, end, guest_amount, book_id)
+    web_control_system.get_html_update_date_guest(
+        start, end, guest_amount, book_id)
     return Redirect(f"/booking/{book_id}")
-    #----
-    
+    # ----
+
+
 @rt("/accommodation/{accom_id}")
 async def room(accom_id: int, req):
     # assuming user host some accom
@@ -181,7 +192,7 @@ async def room(accom_id: int, req):
     form_data = await req.form()
     user_id = form_data.get('user_id')
     # controlsystem.get_html_room_detail(accom_id, user_id)
-    #--------
+    # --------
     # user_id = self.get_member_list[0].get_user_id  # 21
     # host_id = self.get_host_list[0].get_user_id  # 31
     process_accom = controlsystem.search_accom_by_id(accom_id)
@@ -192,7 +203,6 @@ async def room(accom_id: int, req):
     print(f"host_id = {host_id}")
     print(f"user_id = {user_id}")
     detail = controlsystem.search_accom_detail(accom_id)
-    
 
     accommodation1 = controlsystem.search_accom_by_id(accom_id)
 
@@ -725,7 +735,7 @@ async def room(accom_id: int, req):
                 ),
                 cls="hotel-about-section",
             ),
-            #######################price box###########################
+            ####################### price box###########################
             Div(
                 Form(
                     Div(
@@ -805,12 +815,13 @@ async def room(accom_id: int, req):
         ),
     )
 
+
 @rt("/Hosting/{user_id}")
 def host(user_id: int):
     controlsystem = app.state.control_system
     controlsystem.get_html_hosting(user_id)
-    #--------
-    
+    # --------
+
 
 @rt("/price_summary/{user_id}/{accom_id}", methods=["POST"])
 async def post(user_id: int, accom_id: int, request: Request):
@@ -819,9 +830,10 @@ async def post(user_id: int, accom_id: int, request: Request):
         await request.form()
     )  # ✅ Retrieve the submitted form data # wait until the form data is available
     controlsystem.get_html_price_summary(user_id, accom_id, form_data)
-    
-    #------
-    
+
+    # ------
+
+
 @rt("/create_booking", methods="POST")
 def post_bookin(
     user_id: str,
@@ -833,8 +845,8 @@ def post_bookin(
 ):
     controlsystem = app.state.control_system
     # controlsystem.get_html_create_booking(user_id, check_in, check_out, accom_id, total_price, guests)
-    
-    #-----
+
+    # -----
     print(
         f"Received data: user_id={user_id}, check_in={check_in}, check_out={check_out}, accom_id={accom_id}, total_price={total_price}, guests={guests}"
     )
@@ -845,7 +857,8 @@ def post_bookin(
         guests = int(guests)  # Ensure it's an integer
         total_price = float(total_price)  # Ensure price is an integer
     except ValueError:
-        return "Invalid data received", 400
+        return Div("Invalid data received")
+
     booking_item = controlsystem.create_booking(
         user_id, check_in, check_out, accom_id, total_price, guests
     )
@@ -853,24 +866,26 @@ def post_bookin(
     if isinstance(booking_item, str):
         return P(booking_item)
     booking_id = booking_item.get_booking_id
-    
+
     return Div(Form(
         # Input(type="hidden", name="user_id", value=f"{user_id}"),
         # Input(type="hidden", name="booking_id", value=f"{booking_id}"),
         Button("Pay", type="submit", cls="reserve-shit"),
-        method = "get",
-        action = f"/booking/{booking_id}",
+        method="get",
+        action=f"/booking/{booking_id}",
     ))
-    
+
+
 @rt("/update_accommodation_status")
 def get():
     web_control_system = app.state.control_system
     accommodation_list = web_control_system.show_accom_to_update()
-    
+
     return Titled(
         "Confirm Accommodation",
         Container(
-            Form(Button("Back to Home Page", type="submit"), method="get", action="/")
+            Form(Button("Back to Home Page", type="submit"),
+                 method="get", action="/")
         ),
         Table(
             Thead(Tr(Th("ID"), Th("Status"), Th(""))),
@@ -881,7 +896,8 @@ def get():
                     Td(
                         Form(
                             Hidden(name="_method", value="PUT"),
-                            Button("Cancel Approve" if p[1] else "Approve", type="submit"),
+                            Button(
+                                "Cancel Approve" if p[1] else "Approve", type="submit"),
                             method="post",
                             action=f"/update_accommodation/{p[0]}"
                         )
@@ -891,20 +907,22 @@ def get():
             ])
         )
     )
-    
+
+
 @rt('/update_accommodation/{accommodation_id}', methods=["post"])
 def post(accommodation_id: int, _method: str = Form(...)):
     web_control_system = app.state.control_system
     if _method.lower() == "put":
-        
+
         detail = web_control_system.approve_accommodation(accommodation_id)
 
         if detail != "Success":
             return H1("Error")
 
-        return RedirectResponse(f"/update_accommodation_status", status_code=303) 
+        return RedirectResponse(f"/update_accommodation_status", status_code=303)
     return "Invalid method", 405
-    
+
+
 @rt('/sign_up')
 def get(): return Div(
     {"data-theme": "light"},
@@ -1028,7 +1046,6 @@ def get(): return Div(
     """)
 
 
-
 @rt('/create_account')
 def post(name: str, email: str, phone_num: str, password: str, age):
     control = app.state.control_system
@@ -1044,10 +1061,10 @@ def post(name: str, email: str, phone_num: str, password: str, age):
                    Button("Home", type="submit", style="width:50%"),
                    method="post",
                    action="/",
-                   
-               ),
-            #    A(Button("Home"), href=f"/"),
-               style="""
+
+    ),
+        #    A(Button("Home"), href=f"/"),
+        style="""
                     background-color:white;
                     color:black;
                     display: flex;
@@ -1057,6 +1074,7 @@ def post(name: str, email: str, phone_num: str, password: str, age):
                     text-align: center;
                     height:100vh;
                     """)
+
 
 @rt('/log_in')
 def get():
@@ -1170,6 +1188,7 @@ def get():
     height:30vh;
     """)
 
+
 @rt('/check_for_log_in')
 def get(name: str, email: str, phone_num: str, password: str, age):
     from urllib.parse import urlencode
@@ -1177,7 +1196,7 @@ def get(name: str, email: str, phone_num: str, password: str, age):
     id = control.get_member_id(name, email, phone_num, password)
     if not id:
         return Div(H1("Error: Login Fail"), A(Button("Try Again"), href="/log_in"))
-    
+
     # Create a response with form data
     response = RedirectResponse(
         url="/",
@@ -1192,6 +1211,7 @@ def get(name: str, email: str, phone_num: str, password: str, age):
     }
     response.body = urlencode(form_data).encode('utf-8')
     return response
+
 
 @rt("/price_summary/{user_id}/{accom_id}", methods=["POST"])
 async def post(user_id: int, accom_id: int, request: Request):
@@ -1359,12 +1379,17 @@ async def post(user_id: int, accom_id: int, request: Request):
                         Hr(cls="line"),
                         Div(f"Guests : {guests}"),
                         Hr(cls="line"),
-                        Div(f"Total Price: {total_price} ฿", cls="total-price"),
+                        Div(f"Total Price: {total_price} ฿",
+                            cls="total-price"),
                         ######
-                        Input(type="hidden", name="user_id", value=f"{user_id}"),
-                        Input(type="hidden", name="check_in", value=f"{check_in}"),
-                        Input(type="hidden", name="check_out", value=f"{check_out}"),
-                        Input(type="hidden", name="accom_id", value=f"{accom_id}"),
+                        Input(type="hidden", name="user_id",
+                              value=f"{user_id}"),
+                        Input(type="hidden", name="check_in",
+                              value=f"{check_in}"),
+                        Input(type="hidden", name="check_out",
+                              value=f"{check_out}"),
+                        Input(type="hidden", name="accom_id",
+                              value=f"{accom_id}"),
                         Input(
                             type="hidden", name="total_price", value=f"{total_price}"
                         ),
@@ -1382,6 +1407,13 @@ async def post(user_id: int, accom_id: int, request: Request):
     )
 
 
+# @rt('/add_coupon', methods=["POST"])
+# def post(user_id: str):
+#     controlsystem = app.state.control_system
+#     result = controlsystem.get_cou_to_user(user_id)
+#     return Redirect(f'/{user_id}')
+
+
 if __name__ == "__main__":
-    
+
     serve()
