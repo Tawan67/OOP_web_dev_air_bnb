@@ -175,10 +175,10 @@ def update(start: str, end: str, guest_amount: str, book_id: str):
     #----
     
 @rt("/room/{accom_id}")
-def room(accom_id: int):
+def room(accom_id: int, user_id):
     # assuming user host some accom
     controlsystem = app.state.control_system
-    controlsystem.get_html_room_detail(accom_id)
+    controlsystem.get_html_room_detail(accom_id, 1)
     #--------
 
 @rt("/Hosting/{user_id}")
@@ -387,7 +387,14 @@ def post(name: str, email: str, phone_num: str, password: str, age):
     return Div(H1(f"create Account {result} and yor id is {id}", style="""
                     background-color:white;
                     color:black;"""),
-               A(Button("Home"), href=f"/home/{id}"),
+               Form(
+                   Input(type="hidden", name="user_id", value=id),
+                   Button("Home", type="submit", style="width:50%"),
+                   method="post",
+                   action="/",
+                   
+               ),
+            #    A(Button("Home"), href=f"/"),
                style="""
                     background-color:white;
                     color:black;
@@ -399,6 +406,140 @@ def post(name: str, email: str, phone_num: str, password: str, age):
                     height:100vh;
                     """)
 
+@rt('/log_in')
+def get():
+    return Div(
+        {"data-theme": "light"},
+        Title("Booking 999"),
+        Div(
+            A(
+                Img(
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Airbnb_Logo_B%C3%A9lo.svg/1200px-Airbnb_Logo_B%C3%A9lo.svg.png",
+                    style="""
+                margin: 0;
+                padding: 5px;
+                text-align: center;
+                items-align: center;
+                background-color: white;
+                height: 60px;
+                border: none;
+                cursor: pointer;
+                """),
+                href="/"),
+
+            style="""
+        background-color:white;
+        padding: 15px;
+        height:60px;
+        align-items: center;
+        """
+        ),
+        Div(H1("Log in", style="padding-top:20%"),
+            {"data-theme": "light"},
+
+            Form(
+            Div(
+                Label("Name"),
+                Input(type="text", id="name", name="name",
+                      placeholder="Enter your name"),
+                style="""
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            """
+            ),
+            Div(
+                Label("Email"),
+                Input(type="text", id="email", name="email",
+                      placeholder="Enter your email"),
+                style="""
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            """
+            ),
+            Div(
+                Label("Phone Number"),
+                Input(type="text", id="phone_num", name="phone_num",
+                      placeholder="Enter your Phone Number"),
+                style="""
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            """
+            ),
+            Div(
+                Label("Create Password"),
+                Input(type="password", id="password", name="password",
+                      placeholder="Enter your password"),
+                style="""
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            """
+            ),
+            Button("Log in", type="submit", style="width:50%"), Hr("Or"),
+            method="get",
+            action="/check_for_log_in",
+            style="padding:15px;width:100%"
+
+        ),
+            style="""
+    background-color:white;
+    padding-top:30vh
+    color:black;
+    width: 500px;
+    margin: auto;
+    height:70vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    """
+        ),
+        style="background-color:white"
+    ), Div(A(Button("Sign Up"), href="/sign_up",
+             style="""
+     background-color:white;
+    color:black;
+    """), style="""
+     background-color:white;
+    color:black;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height:30vh;
+    """)
+
+@rt('/check_for_log_in')
+def get(name: str, email: str, phone_num: str, password: str, age):
+    from urllib.parse import urlencode
+    control = app.state.control_system
+    id = control.get_member_id(name, email, phone_num, password)
+    if not id:
+        return Div(H1("Error: Login Fail"), A(Button("Try Again"), href="/log_in"))
+    
+    # Create a response with form data
+    response = RedirectResponse(
+        url="/",
+        status_code=303,  # Use 303 See Other for POST redirect
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+    )
+    # Add form data to the redirect
+    form_data = {
+        "user_id": id
+    }
+    response.body = urlencode(form_data).encode('utf-8')
+    return response
 
 if __name__ == "__main__":
     

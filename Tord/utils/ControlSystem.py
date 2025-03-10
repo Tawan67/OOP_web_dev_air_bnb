@@ -1,5 +1,8 @@
 from fasthtml.common import *
 from datetime import datetime, timedelta
+import json
+from fastapi import Request
+
 
 class ControlSystem:
     def __init__(self):
@@ -213,6 +216,7 @@ class ControlSystem:
         return None
 
     def create_account(self, name: str, email: str, password: str, phone: str, age: int):  # dew
+        from .User import Member
         acount = Member(name=name, email=email,
                         password=password, phone_num=phone, age=age)
         self.add_member(acount)
@@ -739,7 +743,8 @@ class ControlSystem:
                         cls="card"
                     ), style="text-decoration: none; color: inherit;", href=f"/accommodation/{accom.get_id}") for accom in filtered_accommodation_list],
                     cls="container"
-                )
+                ),
+                P(f"user id : {user_id}"),
             )
         )
     )
@@ -1735,9 +1740,11 @@ class ControlSystem:
             style="""padding: 20px; text-align: center; background-color: #f4f4f4;height: 100vh;"""
         )
         
-    def get_html_room_detail(self, accom_id):
-        user_id = self.get_member_list[0].get_user_id  # 21
-        host_id = self.get_host_list[0].get_user_id  # 31
+    def get_html_room_detail(self, accom_id, user_id):
+        # user_id = self.get_member_list[0].get_user_id  # 21
+        # host_id = self.get_host_list[0].get_user_id  # 31
+        process_accom = self.search_accom_by_id(accom_id)
+        host_id = process_accom.get_host.get_user_id
         # print(user_id)
 
         # print(user_id)
@@ -1747,7 +1754,7 @@ class ControlSystem:
         
 
         accommodation1 = self.search_accom_by_id(accom_id)
-        if accom_id == 21:
+        if accom_id == 1:
             accom_pics = [
                 "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg",
                 "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4wLkW7-Z5PXiWG6VF7BjPpGTjmVIZwZHo3Zb5vJf8nppOzQhjfRdx2GTAfr6JaO1uHeA&usqp=CAU",
@@ -1755,34 +1762,34 @@ class ControlSystem:
                 "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
                 "https://www.brightonhomes-idaho.com/2020/wp-content/uploads/2020/03/Available_Homes-600x400.jpg",
             ]
-        elif accom_id == 22:
-            accom_pics = [
-                "https://images.immediate.co.uk/production/volatile/sites/3/2021/05/minecraft-blueprints-0d97805.png",
-                "https://images.immediate.co.uk/production/volatile/sites/3/2021/05/victorian-castle-minecraft-d5a2a31.png",
-                "https://i.pinimg.com/736x/4f/58/10/4f5810b188b42fb7af207cc77bef2e9c.jpg",
-                "https://i.ytimg.com/vi/gL_4xJ6TO7g/maxresdefault.jpg",
-                "https://assetsio.gnwcdn.com/pale-garden-house.jpg?width=1200&height=630&fit=crop&enable=upscale&auto=webp",
-            ]
-        elif accom_id == 23:
-            accom_pics = [
-                "https://example.com/accom3_img1.jpg",
-                "https://example.com/accom3_img2.jpg",
-                "https://example.com/accom3_img3.jpg",
-                "https://example.com/accom3_img4.jpg",
-                "https://example.com/accom3_img5.jpg",
-            ]
-        elif accom_id == 24:
-            accom_pics = [
-                "https://example.com/accom4_img1.jpg",
-                "https://example.com/accom4_img2.jpg",
-                "https://example.com/accom4_img3.jpg",
-                "https://example.com/accom4_img4.jpg",
-                "https://example.com/accom4_img5.jpg",
-            ]
+        # elif accom_id == 22:
+        #     accom_pics = [
+        #         "https://images.immediate.co.uk/production/volatile/sites/3/2021/05/minecraft-blueprints-0d97805.png",
+        #         "https://images.immediate.co.uk/production/volatile/sites/3/2021/05/victorian-castle-minecraft-d5a2a31.png",
+        #         "https://i.pinimg.com/736x/4f/58/10/4f5810b188b42fb7af207cc77bef2e9c.jpg",
+        #         "https://i.ytimg.com/vi/gL_4xJ6TO7g/maxresdefault.jpg",
+        #         "https://assetsio.gnwcdn.com/pale-garden-house.jpg?width=1200&height=630&fit=crop&enable=upscale&auto=webp",
+        #     ]
+        # elif accom_id == 23:
+        #     accom_pics = [
+        #         "https://example.com/accom3_img1.jpg",
+        #         "https://example.com/accom3_img2.jpg",
+        #         "https://example.com/accom3_img3.jpg",
+        #         "https://example.com/accom3_img4.jpg",
+        #         "https://example.com/accom3_img5.jpg",
+        #     ]
+        # elif accom_id == 24:
+        #     accom_pics = [
+        #         "https://example.com/accom4_img1.jpg",
+        #         "https://example.com/accom4_img2.jpg",
+        #         "https://example.com/accom4_img3.jpg",
+        #         "https://example.com/accom4_img4.jpg",
+        #         "https://example.com/accom4_img5.jpg",
+        #     ]
         else:
             accom_pics = []  # Default empty list if no match
 
-        accommodation1.clear_accom_pics()
+        # accommodation1.clear_accom_pics()
 
         for pic in accom_pics:
             accommodation1.add_accom_pics(pic)
@@ -2382,11 +2389,11 @@ class ControlSystem:
                             cls="submit-button",
                         ),
                         # ✅ เพิ่ม div ซ่อนค่า occupied_dates ไว้
-                        Div(
-                            json.dumps(detail[5]),
-                            id="occupied-dates",
-                            style="display:none;",
-                        ),
+                        # Div(
+                        #     json.dumps(detail[5]),
+                        #     id="occupied-dates",
+                        #     style="display:none;",
+                        # ),
                         cls="price-box",
                         method="post",
                         action=f"/price_summary/{user_id}/{accom_id}",
@@ -2913,3 +2920,14 @@ class ControlSystem:
             if bool_check:
                 return text
         return text
+    
+    def create_account(self, name: str, email: str, password: str, phone: str, age: int):  # dew
+        try:
+            from .User import Member
+            acount = Member(name=name, email=email,
+                            password=password, phone_num=phone, age=age)
+            self.add_member(acount)
+            return "Success"
+        except:
+            return "Fail to Sign Up"
+        pass
