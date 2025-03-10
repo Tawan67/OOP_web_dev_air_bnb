@@ -1,6 +1,7 @@
 from fasthtml.common import *
 from datetime import datetime, timedelta
 from calendar import monthrange, weekday
+import time
 
 from utils.ControlSystem import ControlSystem 
 from utils.Booking import Booking
@@ -37,13 +38,20 @@ def setup_app(app):
     # Perform initialization
     control_system.add_member_and_payment_method()
     control_system.add_accommodation_test()
-    # control_system.make_booking()
+    control_system.make_booking_and_payment()
     # control_system.add_accommodation_booked_date()
     print("=========================End===============================")
     return control_system
 
 # Call setup once when the app starts
 setup_app(app)
+
+while True:
+    current_time = datetime.now()
+    if current_time - start_time >= timedelta(seconds=10):
+        app.state.control_system.deduction_period()
+        start_time = current_time  # Reset the timer
+    time.sleep(1)  # Add small delay to prevent CPU overuse
 
 def get_style():
     return Style("""
@@ -160,6 +168,7 @@ def cancel_booking(booking_id: int, _method: str = Form(...)):
 @rt('/booking/{book_id}')
 def get(book_id: str):
     web_control_system = app.state.control_system
+    # return Html(P(book_id))
     return web_control_system.get_html_booking(book_id)
 
 
@@ -180,8 +189,8 @@ def update(start: str, end: str, guest_amount: str, book_id: str):
     # อัปเดตวันที่และจำนวนแขกใน booking
     # return P(f"{book_id}")
     web_control_system = app.state.control_system
-    web_control_system.get_html_update_date_guest(start, end, guest_amount, book_id)
-    return Redirect(f"/booking/{book_id}")
+    return web_control_system.get_html_update_date_guest(start, end, guest_amount, book_id)
+    # return Redirect(f"/booking/{book_id}")
     #----
     
 @rt("/accommodation/{accom_id}")
@@ -841,37 +850,13 @@ def post_bookin(
     accom_id: str,
     total_price: str,
     guests: str,
+    request: Request
 ):
     controlsystem = app.state.control_system
-    # controlsystem.get_html_create_booking(user_id, check_in, check_out, accom_id, total_price, guests)
-    
+    user_id = request.session.get("user_id")
+    book_id = controlsystem.get_html_create_booking(user_id, check_in, check_out, accom_id, total_price, guests)
+    return Redirect(f"/booking/{book_id}")
     #-----
-    print(
-        f"Received data: user_id={user_id}, check_in={check_in}, check_out={check_out}, accom_id={accom_id}, total_price={total_price}, guests={guests}"
-    )
-    print(type(guests))
-    print(type(total_price))
-    try:
-
-        guests = int(guests)  # Ensure it's an integer
-        total_price = float(total_price)  # Ensure price is an integer
-    except ValueError:
-        return "Invalid data received", 400
-    booking_item = controlsystem.create_booking(
-        user_id, check_in, check_out, accom_id, total_price, guests
-    )
-    print(type(booking_item))
-    if isinstance(booking_item, str):
-        return P(booking_item)
-    booking_id = booking_item.get_booking_id
-    
-    return Div(Form(
-        # Input(type="hidden", name="user_id", value=f"{user_id}"),
-        # Input(type="hidden", name="booking_id", value=f"{booking_id}"),
-        Button("Pay", type="submit", cls="reserve-shit"),
-        method = "get",
-        action = f"/booking/{booking_id}",
-    ))
     
 @rt("/update_accommodation_status")
 def get():
@@ -1197,7 +1182,7 @@ async def post(req):
     user_id = control.get_member_id(name, email, phone_num, password)
     if not user_id:
         return Div(H1("Error: Login Fail"), A(Button("Try Again"), href="/log_in"))
-    
+     
     req.session["user_id"] = str(user_id)
     return RedirectResponse("/", status_code=303)
 

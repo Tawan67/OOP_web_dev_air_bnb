@@ -11,8 +11,11 @@ class ControlSystem:
         self.__host_list = []
         self.__accommodation_list = []  # stored hotel, house
         self.__payment_method_list = []
+        self.__payment_list = []
         # self.__balance = None ไม่ควรมี เพราะ ค่านี้คสวรอยู่ใน paymed
 
+    def add_payment(self, input1): 
+        self.__payment_list.append(input1)
     @property
     def get_booking_list(self):
         return self.__booking_list
@@ -141,9 +144,8 @@ class ControlSystem:
 # FIXME:
 # ----------------------------------------------- downnnnnnnn
     # def create_booking(self, guest_amount, accom_id, price, menber_id,check_in,check_out):
-    def create_booking(self, user_id, check_in, check_out, accom_id, total_price, guests):
+    def create_booking(self, user_id, check_in, check_out, accom_id, guests):
         # guest_amount = int(guest_amount)
-        price = int(total_price)
         accom_id = int(accom_id)
         member = self.search_member_by_id(user_id)
         accom = self.search_accom_by_id(accom_id)
@@ -382,7 +384,8 @@ class ControlSystem:
     def create_payment(self, price, period, paymed, booking_id):
         booking_item = self.search_booking_by_id(booking_id=booking_id)
         payment = booking_item.create_payment(price, period, paymed)
-        result = self.update_booking_pay(payment)
+        result = self.update_booking_payment(booking_id,payment)
+        self.add_payment(payment)
         return result
         pass  # call Booking to create
 
@@ -418,12 +421,24 @@ class ControlSystem:
         # except Exception as e:
         #     return Html(P(e))
         if (self.check_accom_available(process_booking)):
-            # create payment
+            # Verify
+            if web_payment_expired_date == process_payment_method.get_expired_date_pretty and web_payment_vcc == str(process_payment_method.get_vcc_number):
+            
+                # create payment
+                from .Payment import Payment
+                new_payment = Payment(web_period, process_payment_method, self.get_all_price(booking_id))
+                process_booking.update_payment(new_payment)
+                self.add_payment(new_payment)
                           
-            # deduction
-            if web_payment_expired_date == process_payment_method.get_expired_date_pretty and web_payment_vcc == str(process_payment_method.get_vcc_number): # check vcc and expired
-                if process_payment_method.deduction(process_booking.cal_price()) == "Not enough balance":
-                    return Html(P("Not enough balance"))
+                # deduction
+                if web_payment_type == "Period":
+                    # return Html(P("Period"))
+                    # new_payment.create_period(self.get_all_price(booking_id), web_period)
+                    pass
+                if web_payment_type == "One Time":
+                    deduction_status = process_payment_method.deduction(process_booking.get_payment.get_total)
+                    if deduction_status == "Not enough balance":
+                        return Html(P("Not enough balance"))
             else:
                 return self.get_html_payment_didnt_match(web_payment_expired_date, web_payment_vcc)
 
@@ -952,7 +967,10 @@ class ControlSystem:
             if booking.get_booking_id == booking_id:
                 return booking
             
-              
+    @property
+    def get_payment_list(self):
+        return self.__payment_list
+            
     def get_html_monitor_airbnb(self):
         # Airbnb-inspired CSS styling
         css = """
@@ -1028,6 +1046,7 @@ class ControlSystem:
         accommodations = self.get_accommodation_list
         hosts = self.get_host_list
         bookings = self.get_booking_list
+        payments = self.get_payment_list
 
         # Build the HTML structure
         return Html(
@@ -1041,7 +1060,8 @@ class ControlSystem:
                         Th("Payment Methods"),
                         Th("Accommodations"),
                         Th("Hosts"),
-                        Th("Bookings")
+                        Th("Bookings"),
+                        Th("Payments")
                     )
                 ),
                 Tbody(
@@ -1060,6 +1080,9 @@ class ControlSystem:
                         ),
                         Td(
                             Ul(*[Li(str(booking)) for booking in bookings], klass="item-list")
+                        ),
+                        Td(
+                            Ul(*[Li(str(payment)) for payment in payments ], klass="item-list")
                         )
                     )
                 ),
@@ -1131,37 +1154,17 @@ class ControlSystem:
         print(f'Accommodation : {new_hotel.get_acc_name},ID : {new_hotel.get_id}, Host : {new_host.get_user_name}')  
         print(f'Accommodation : {new_room.get_acc_name},ID : {new_room.get_id}, Host : {new_host.get_user_name}')
 
-    def make_booking(self):
+    def make_booking_and_payment(self):
         from .Booking import Booking, BookedDate
-        reset = Booking(None,None,None,None)
-        reset.reset_increment()
+        reset = Booking(None,None,None).reset_increment()
+        
+        new_booking = self.create_booking('1', check_in="2025-03-11",  check_out="2025-03-12", accom_id=self.get_accommodation_list[0].get_id, guests=2)
+        reset_increment = new_booking.create_payment(None,None,None).reset_increament()
+        self.create_payment(self.get_all_price(new_booking.get_booking_id, True), 1, self.get_payment_method_list[0], new_booking.get_booking_id)
+        return new_booking
 
         
-        self.create_booking(
-            accom=self.get_accommodation_list[0],
-            date=datetime.now(),
-            guess=2,
-            member=self.get_member_list[0]
-        )
-        self.get_booking_by_id(1).add_booked_date(BookedDate(datetime.now(), datetime.now() + timedelta(days=5)))
         
-        self.create_booking(
-            accom=self.get_accommodation_list[2],
-            date=datetime.now(),
-            guess=5,
-            member=self.get_member_list[0]
-        )
-        self.get_booking_by_id(2).add_booked_date(BookedDate(datetime.now() + timedelta(days=6), datetime.now() + timedelta(days=10)))
-        
-        self.create_booking(
-            accom=self.get_accommodation_list[2],
-            # date=BookedDate(datetime.now() + timedelta(days=10), datetime.now() + timedelta(days=20)),
-            date=datetime.now(),
-
-            guess=10,
-            member=self.get_member_list[0]
-        )
-        self.get_booking_by_id(3).add_booked_date(BookedDate(datetime.now() + timedelta(days=6), datetime.now() + timedelta(days=20)))
 
     def add_accommodation_booked_date(self):
         from .Booking import BookedDate
@@ -1314,13 +1317,12 @@ class ControlSystem:
         
     def get_all_price(self, booking_id, out_int=False): # true if want int
         try:
-            total_price_with_fee = self.get_fee(
-                booking_id, out_int=True)+self.get_total_price_to_show(booking_id, out_int=True)
+            total_price_with_fee = self.get_fee(booking_id, out_int=True)+self.get_total_price_to_show(booking_id, out_int=True)
             if out_int:
                 return total_price_with_fee
             return str(total_price_with_fee)
-        except:
-            return "something with cal price or fee"
+        except Exception as e:
+            return e
         
     def get_html_booking(self, book_id):    
         if not book_id:
@@ -1600,7 +1602,7 @@ class ControlSystem:
         if not (isinstance(booking_id, str)):
             booking_id = str(booking_id)
         booking_item = self.search_booking_by_id(booking_id)
-        result = booking_item.update_date(start, end, True)
+        result = booking_item.update_date(start, end)
         return result
         pass
     
@@ -1730,14 +1732,14 @@ class ControlSystem:
         )
         
     def get_html_update_date_guest(self, start, end, guest_amount, book_id):
-        try:
-            date_result = self.update_date(book_id, start, end)
-            guest_result = self.update_guest(book_id, guest_amount)
-            amount = self.get_all_price(book_id, True)
-            self.get_booking_by_id(book_id).set_amount(amount)
-            return Redirect(f"/booking/{book_id}")  # ส่งผู้ใช้กลับไปยังหน้าจอง
-        except Exception as e:
-            return Html(e)
+        # try:
+        date_result = self.update_date(book_id, start, end)
+        guest_result = self.update_guest(book_id, guest_amount)
+        amount = self.get_all_price(book_id, True)
+        self.get_booking_by_id(int(book_id)).set_amount(amount)
+        return Redirect(f"/booking/{book_id}")  # ส่งผู้ใช้กลับไปยังหน้าจอง
+        # except Exception as e:
+        #     return Html(e)
         return Div(
             H1(f"Booking updated successfully!",
             style=""" text-align: center; background-color: #f4f4f4;color:black;"""
@@ -2911,15 +2913,19 @@ class ControlSystem:
         print(booking_item)
         if isinstance(booking_item, str):
             return P(booking_item)
-        booking_id = booking_item
+        booking_id = booking_item.get_booking_id
+        return booking_id
         
-        return Div(Form(
-            # Input(type="hidden", name="user_id", value=f"{user_id}"),
-            # Input(type="hidden", name="booking_id", value=f"{booking_id}"),
-            Button("Pay", type="submit", cls="reserve-shit"),
-            method = "get",
-            action = f"/booking/{booking_id}",
-        ))
+        #redirect to booking
+        # return Redirect(f"/booking/{booking_id}")
+        
+        # return Div(Form(
+        #     # Input(type="hidden", name="user_id", value=f"{user_id}"),
+        #     # Input(type="hidden", name="booking_id", value=f"{booking_id}"),
+        #     Button("Pay", type="submit", cls="reserve-shit"),
+        #     method = "get",
+        #     action = f"/booking/{booking_id}",
+        # ))
 
 
     def show_accom_to_update(self):
@@ -2955,3 +2961,10 @@ class ControlSystem:
         except:
             return "Fail to Sign Up"
         pass
+    
+    def deduction_period(self):
+        for payment in self.get_payment_list:
+            for period in payment.get_period_list:
+                if period.get_status == False:
+                    payment.get_pay_med.deduction(period.get_price)
+                    period.get_status = True
