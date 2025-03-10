@@ -95,10 +95,10 @@ class ControlSystem:
 
     def create_payment_med(self, details):
         details = "".join(i for i in details if i != '"')
-        bank_id, user, balance, password = details.split(",")
+        card_id, user, balance, password = details.split(",")
         balance = int(balance)
         user = self.search_member_by_id(user)
-        pay_med = Debit(bank_id, user, balance, password)
+        pay_med = Debit(card_id, user, balance, password)
         return pay_med
         # key use
         # cal member to create and put on Booking after create
