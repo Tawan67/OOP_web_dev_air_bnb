@@ -20,82 +20,6 @@ from utils.User import Member
 # Global variable to store the booking (optional, can remove if not needed)
 my_booking = None
 
-def add_member_and_payment_method(control_system):
-    reset = Member('','','','','')
-    reset.reset_increament()
-    new_member = Member(name="Tord", email="saygex@gmail.com", password=1234, phone_num=1234567890, age=19)
-    control_system.add_member(new_member)
-    new_pay_med = PaymentMethod(bank_id="1234", user=new_member, balance=100000)
-    control_system.add_payment_method(new_pay_med)
-    control_system.search_member_by_id(new_member.get_user_id).add_payment_method(new_pay_med)
-    balance = control_system.search_member_by_id(new_member.get_user_id).get_payment_method_list[0].get_balance
-    print(f'name : {new_member.get_user_name}, balance : {balance}')
-
-def add_accommodation(control_system):
-    reset = Accommodation(None,None,None,None)
-    reset.reset_increament()
-    new_house = House("test_house", "location", "description", 6969, "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJxo2NFiYcR35GzCk5T3nxA7rGlSsXvIfJwg&s")
-    control_system.add_accommodation(new_house)
-    new_host = Host(name="Tro", email="saygex1@gmail.com", password=12345, phone_num=1234567890, age=96)
-    new_house.add_host(new_host)
-    control_system.add_host(new_host)
-    control_system.search_host_by_id(new_host.get_user_id).add_accommodation(new_house)
-    print(f'Accommodation : {new_house.get_acc_name},ID : {new_house.get_id}, Host : {new_host.get_user_name}')    
-    
-    new_hotel = Hotel("test_hotel", "location_hotel", "description_hotel")
-    control_system.add_accommodation(new_hotel)
-    new_hotel.add_host(new_host)
-    new_room = Room(room_id="1", room_floor=1, price=1000, hotel_address="location_hotel", hotel_name="test_hotel")
-    control_system.add_accommodation(new_room)
-    control_system.search_accom_by_id(new_hotel.get_id).add_room(new_room)
-    control_system.search_host_by_id(new_host.get_user_id).add_accommodation(new_hotel)
-    control_system.search_host_by_id(new_host.get_user_id).add_accommodation(new_room)
-    print(f'Accommodation : {new_hotel.get_acc_name},ID : {new_hotel.get_id}, Host : {new_host.get_user_name}')  
-    print(f'Accommodation : {new_room.get_acc_name},ID : {new_room.get_id}, Host : {new_host.get_user_name}')
-
-def make_booking(control_system):
-    reset = Booking(None,None,None,None)
-    reset.reset_increment()
-
-    
-    control_system.create_booking(
-        accom=control_system.get_accommodation_list[0],
-        date=datetime.now(),
-        guess=2,
-        member=control_system.get_member_list[0]
-    )
-    control_system.get_booking_by_id(1).add_booked_date(BookedDate(datetime.now(), datetime.now() + timedelta(days=5)))
-    
-    control_system.create_booking(
-        accom=control_system.get_accommodation_list[2],
-        date=datetime.now(),
-        guess=5,
-        member=control_system.get_member_list[0]
-    )
-    control_system.get_booking_by_id(2).add_booked_date(BookedDate(datetime.now() + timedelta(days=6), datetime.now() + timedelta(days=10)))
-    
-    control_system.create_booking(
-        accom=control_system.get_accommodation_list[2],
-        # date=BookedDate(datetime.now() + timedelta(days=10), datetime.now() + timedelta(days=20)),
-        date=datetime.now(),
-
-        guess=10,
-        member=control_system.get_member_list[0]
-    )
-    control_system.get_booking_by_id(3).add_booked_date(BookedDate(datetime.now() + timedelta(days=6), datetime.now() + timedelta(days=20)))
-
-def add_accommodation_booked_date(control_system):
-    new_booked_date = BookedDate(datetime.now(), datetime.now() + timedelta(days=2))
-    control_system.get_accommodation_list[0].add_booked_date(new_booked_date)
-    
-    new_booked_date = BookedDate(datetime.now() + timedelta(days=4), datetime.now() + timedelta(days=6))
-    control_system.get_accommodation_list[0].add_booked_date(new_booked_date)
-    
-    new_booked_date = BookedDate(datetime.now() + timedelta(days=8), datetime.now() + timedelta(days=12))
-    control_system.get_accommodation_list[0].add_booked_date(new_booked_date)
-    
-    print(f'booked_date : {control_system.get_accommodation_list[0].get_booked_date}')
-
 # Initialize the app
 app, rt = fast_app()
 
@@ -107,10 +31,10 @@ def setup_app(app):
     app.state.control_system = control_system
     
     # Perform initialization
-    add_member_and_payment_method(control_system)
-    add_accommodation(control_system)
-    make_booking(control_system)
-    # add_accommodation_booked_date(control_system)
+    control_system.add_member_and_payment_method()
+    control_system.add_accommodation_test()
+    control_system.make_booking()
+    # control_system.add_accommodation_booked_date()
     print("=========================End===============================")
     return control_system
 
@@ -124,25 +48,37 @@ def get_style():
         .success { color: green; }
     """)
 
-@rt('/purchase/booking_id={booking_id:int}', methods=['GET'])
-async def purchase(req, booking_id: int):
+@rt('/monitor', methods=['GET'])
+async def monitor(req):
     web_control_system = req.app.state.control_system
+    return web_control_system.get_html_monitor_airbnb()
+
+
+@rt('/purchase/booking_id={booking_id:int}', methods=['POST'])
+async def purchase(req, booking_id: int):
+    
+    web_control_system = req.app.state.control_system
+    form_data = await req.form()
+    web_user_id = form_data.get('user_id')
     result_booking = web_control_system.search_booking_by_id(booking_id)
     if result_booking == 'cant find':
         return Html(P(result_booking))
     else:
-        return web_control_system.generate_booking_html(result_booking, booking_id)
+        return web_control_system.generate_booking_html(result_booking, booking_id, web_user_id)
         
 
 @rt('/process_payment/booking_id={booking_id:int}', methods=['POST'])
 async def process_payment(req, booking_id: int):
     web_control_system = req.app.state.control_system
     form_data = await req.form()
-    web_payment_method = form_data.get('payment_method')
-    web_payment_owner_name = form_data.get('full_name')
+    web_payment_method = form_data.get('payment_method_id')
+    web_payment_expired_date = form_data.get('expired_date')
+    web_payment_vcc = form_data.get('vcc_number')
+    web_payment_type = form_data.get('payment_type')
+    web_period = form_data.get('period')
     
     # TODO:
-    result = web_control_system.process_payment(booking_id, web_payment_method, web_payment_owner_name)
+    result = web_control_system.process_payment(booking_id, web_payment_method, web_payment_expired_date, web_payment_vcc, web_payment_type, web_period)
     return result
 
 @rt('/')
@@ -150,19 +86,31 @@ async def index(req):
     form_data = await req.form()
     user_id = form_data.get('user_id')
     web_control_system = req.app.state.control_system
-    return web_control_system.get_html_index()
+    return web_control_system.get_html_index(user_id)
 
-
-
-@rt('/payment')
-def payment(req):
+    
+@rt('/payment/add')
+async def add_payment(req):
     web_control_system = req.app.state.control_system
-    return Html(
-        H1("Payment Method"),
-        P(f'Bank ID : {web_control_system.get_member_list[0].get_payment_method_list[0].get_bank_id}'),
-        P(f'Balance : {web_control_system.get_member_list[0].get_payment_method_list[0].get_balance}'),
-        P(f'Name : {web_control_system.get_member_list[0].get_payment_method_list[0].get_owner.get_user_name}'),     
-    )
+    form_data = await req.form()
+    web_user_id = form_data.get('user_id')
+    return web_control_system.get_html_add_payment(web_user_id)
+    # return Html(P(f"user_id : {web_user_id}"))
+
+@rt('/payment/add/process', methods=['POST'])
+async def add_payment_process(req):
+    web_control_system = req.app.state.control_system
+    form_data = await req.form()
+    web_bank_id = form_data.get('bank_id')
+    web_expired_date = form_data.get('expired_date')
+    web_vcc_number = form_data.get('vcc_number')
+    web_user_id = form_data.get('user_id')
+    return web_control_system.get_html_add_payment_process(web_user_id,web_bank_id, web_expired_date, web_vcc_number)
+    # return Html(P(f"user_id : {web_user_id}"),
+    #             P(f"bank_id : {web_bank_id}"),
+    #             P(f"expired_date : {web_expired_date}"),
+    #             P(f"vcc_number : {web_vcc_number}"))
+
     
 @rt('/search')
 async def search(req):
@@ -178,83 +126,15 @@ async def search(req):
 def get(user_id : int, req):
     web_control_system = req.app.state.control_system
     user_id = int(user_id)
-    booking_list = web_control_system.get_booking_history(user_id)
+    return web_control_system.get_html_booking_history(user_id)
+    #---------------
     
-
-    if booking_list == None:
-        return Container(H1("Can't Find Booking History"),
-                Form(Button("Back to Home page", type="submit"), 
-                method="get",
-                action=f"/"
-            )
-    )
-
-
-    return Titled(
-        "Booking History",
-        Container(
-            Form(Button("Back to Home Page", type="submit"), method="get", action="/")
-        ),
-        Table(
-            Thead(Tr(Th("ID"), Th("Status"), Th("Date"), Th("Accommodation name"), Th("Check-In"), Th("Check-Out"), Th("Amount"), Th(""))),
-            Tbody(*[
-                Tr(
-                    Td(p[0]), Td(p[1]), Td(p[2]),Td(p[3]),Td(p[4]),Td(p[5]),Td(p[6]),
-                Td(
-                    Form(
-                        Button("Detail", type="submit"),
-                        method="get",
-                        action=f"/view_booking_detail/{user_id}/{p[0]}"
-                    )
-                )               
-                )
-                for p in booking_list
-            ])
-        )
-    )      
     
 @rt('/view_booking_detail/{user_id}/{booking_id}')
 def get(user_id : int, booking_id: int):
     web_control_system = app.state.control_system
-    detail = web_control_system.get_booking_detail(booking_id)
-    cancel_button = None
-    if detail[1] != "Cancelled" and detail[1] != "Completed":
-        cancel_button = Form(
-            Hidden(name="_method", value="PUT"),
-            Button("Cancel Booking", type="submit"),
-            method="post",
-            action=f"/cancel_booking/{detail[0]}"
-        )
-
-    if detail == None:
-        return Container(H1("Can't Find Booking"),
-                Form(Button("Back to Booking History", type="submit"), 
-                method="get",
-                action=f"/booking_history/{user_id}"
-            )
-    )
-    else:       
-        return Titled(
-        f"Booking Detail for {detail[0]}",
-        Container(
-            P(f"Booking ID: {detail[0]}"),
-            P(f"Status: {detail[1]}"),
-            P(f"date: {detail[2]}"),
-            P(f"Accommodation Name: {detail[6]}"),
-            P(f"Check-In Date: {detail[4]}"),
-            P(f"Check-Out Date: {detail[5]}"),
-            P(f"Amount: {detail[3]}"),
-            P(f"Accommodation Info: {detail[7]}"),        
-            P(f"Address: {detail[8]}"),
-            P(f"Host Name: {detail[9]}"),
-            P(f"Phone Number: {detail[10]}"),
-            cancel_button,
-            Form(Button("Back to Booking History", type="submit"), 
-                method="get",
-                action=f"/booking_history/{user_id}"
-            )
-        )
-    )
+    return web_control_system.get_html_view_booking_detail(user_id, booking_id)
+    #------
       
       
       
@@ -266,8 +146,258 @@ def cancel_booking(booking_id: int, _method: str = Form(...)):
         return RedirectResponse(f"/booking_history/{user_id}", status_code=303)
     return "Invalid method", 405
 
+
+@rt('/booking/{book_id}')
+def get(book_id: str):
+    web_control_system = app.state.control_system
+    return web_control_system.get_html_booking(book_id)
+
+
+@rt('/create_pay')
+def post(payment: str, period: str,
+         paymed: str, card_num: str, expiration_date: str, password: str, booking_id: str):
+    web_control_system = app.state.control_system
+    return web_control_system.get_html_create_pay(payment, period, paymed, card_num, expiration_date, password, booking_id)
+
+
+@rt('/edit_date_guest/{book_id}')
+def get(book_id: str):
+    web_control_system = app.state.control_system
+    return web_control_system.get_html_edit_date_guest(book_id)
+
+@rt('/update_date_guest/{book_id}')
+def update(start: str, end: str, guest_amount: str, book_id: str):
+    # อัปเดตวันที่และจำนวนแขกใน booking
+    # return P(f"{book_id}")
+    web_control_system = app.state.control_system
+    web_control_system.get_html_update_date_guest(start, end, guest_amount, book_id)
+    return Redirect(f"/booking/{book_id}")
+    #----
+    
+@rt("/room/{accom_id}")
+def room(accom_id: int):
+    # assuming user host some accom
+    controlsystem = app.state.control_system
+    controlsystem.get_html_room_detail(accom_id)
+    #--------
+
+@rt("/Hosting/{user_id}")
+def host(user_id: int):
+    controlsystem = app.state.control_system
+    controlsystem.get_html_hosting(user_id)
+    #--------
     
 
+@rt("/price_summary/{user_id}/{accom_id}", methods=["POST"])
+async def post(user_id: int, accom_id: int, request: Request):
+    controlsystem = app.state.control_system
+    form_data = (
+        await request.form()
+    )  # ✅ Retrieve the submitted form data # wait until the form data is available
+    controlsystem.get_html_price_summary(user_id, accom_id, form_data)
+    
+    #------
+    
+@rt("/create_booking", methods="POST")
+def post_bookin(
+    user_id: str,
+    check_in: str,
+    check_out: str,
+    accom_id: str,
+    total_price: str,
+    guests: str,
+):
+    controlsystem = app.state.control_system
+    controlsystem.get_html_create_booking(user_id, check_in, check_out, accom_id, total_price, guests)
+    
+@rt("/update_accommodation_status")
+def get():
+    web_control_system = app.state.control_system
+    accommodation_list = web_control_system.show_accom_to_update()
+    
+    return Titled(
+        "Confirm Accommodation",
+        Container(
+            Form(Button("Back to Home Page", type="submit"), method="get", action="/")
+        ),
+        Table(
+            Thead(Tr(Th("ID"), Th("Status"), Th(""))),
+            Tbody(*[
+                Tr(
+                    Td(p[0]),
+                    Td("Approved" if p[1] else "Pending"),
+                    Td(
+                        Form(
+                            Hidden(name="_method", value="PUT"),
+                            Button("Cancel Approve" if p[1] else "Approve", type="submit"),
+                            method="post",
+                            action=f"/update_accommodation/{p[0]}"
+                        )
+                    )
+                )
+                for p in accommodation_list
+            ])
+        )
+    )
+    
+@rt('/update_accommodation/{accommodation_id}', methods=["post"])
+def post(accommodation_id: int, _method: str = Form(...)):
+    web_control_system = app.state.control_system
+    if _method.lower() == "put":
+        
+        detail = web_control_system.approve_accommodation(accommodation_id)
+
+        if detail != "Success":
+            return H1("Error")
+
+        return RedirectResponse(f"/update_accommodation_status", status_code=303) 
+    return "Invalid method", 405
+    
+@rt('/sign_up')
+def get(): return Div(
+    {"data-theme": "light"},
+    Title("Booking 999"),
+    Div(
+        A(
+            Img(
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Airbnb_Logo_B%C3%A9lo.svg/1200px-Airbnb_Logo_B%C3%A9lo.svg.png",
+                style="""
+                margin: 0;
+                padding: 5px;
+                text-align: center;
+                items-align: center;
+                background-color: white;
+                height: 60px;
+                border: none;
+                cursor: pointer;
+                """),
+            href="/"),
+
+        style="""
+        background-color:white;
+        padding: 15px;
+        height:80px;
+        align-items: center;
+        """
+    ),
+    Div(H1("Sign Up", style="padding-top: 20%"),
+        {"data-theme": "light"},
+
+        Form(
+        Div(
+            Label("Name"),
+            Input(type="text", id="name", name="name",
+                  placeholder="Enter your name"),
+            style="""
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            """
+        ),
+        Div(
+            Label("Email"),
+            Input(type="text", id="email", name="email",
+                  placeholder="Enter your email"),
+            style="""
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            """
+        ),
+        Div(
+            Label("Phone Number"),
+            Input(type="text", id="phone_num", name="phone_num",
+                  placeholder="Enter your Phone Number"),
+            style="""
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            """
+        ),
+        Div(
+            Label("Age"),
+            Input(type="number", id="age", name="age",
+                  placeholder="Enter your Age"),
+            style="""
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            """
+        ),
+        Div(
+            Label("Create Password"),
+            Input(type="password", id="password", name="password",
+                  placeholder="Enter your password"),
+            style="""
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            """
+        ),
+        Button("Sign Up", type="submit", style="width:50%"), Hr("Or"),
+        method="post",
+        action="/create_account",
+        style="padding:15px;width:100%"
+
+    ),
+        style="""
+    padding-top:30vh
+    background-color:white;
+    color:black;
+    width: 500px;
+    margin: auto;
+    height:70vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    """
+    ),
+    style="background-color:white"
+), Div(A(Button("Login"), href="/log_in",
+         style="""
+     background-color:white;
+    color:black;
+    """), style="""
+     background-color:white;
+    color:black;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height:30vh;
+    """)
+
+
+
+@rt('/create_account')
+def post(name: str, email: str, phone_num: str, password: str, age):
+    control = app.state.control_system
+    result = control.create_account(name, email, password, phone_num, age)
+    id = control.get_member_id(name, email, phone_num, password)
+    if not id:
+        return Div(H1("Error: Could not retrieve user ID"), A(Button("Try Again"), href="/sign_up"))
+    return Div(H1(f"create Account {result} and yor id is {id}", style="""
+                    background-color:white;
+                    color:black;"""),
+               A(Button("Home"), href=f"/home/{id}"),
+               style="""
+                    background-color:white;
+                    color:black;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center;
+                    height:100vh;
+                    """)
 
 
 if __name__ == "__main__":

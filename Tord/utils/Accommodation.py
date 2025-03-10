@@ -16,6 +16,7 @@ class Accommodation:
         self.__reviews = []
         self.__host = None
         Accommodation.count_id += 1
+        
 
     def reset_increament(self):
         Accommodation.count_id = 1
@@ -57,25 +58,38 @@ class Accommodation:
             self.__host = host
             return "Success"
 
-# ------------------------------------------------------------------
-    """
-    def cal_price(self, start_date, end_date):
-        # Convert HTML date strings (e.g., "2025-03-01") to datetime objects
-        start = datetime.strptime(start_date, "%Y-%m-%d")
-        end = datetime.strptime(end_date, "%Y-%m-%d")
 
+    def create_review(self, rating, user, message):
+        try:
+            my_review = Review(rating, user, message)
+            for i in self.__reviews:
+                if i.get_user == user:
+                    self.__reviews.remove(i)
+                    self.__reviews.append(my_review)
+                    return "Update Complete"
+            self.add_review(my_review)
+            return "Added Complete"
+            pass
+        except:
+            return "Wrong Type Review"
+        
+    def cal_price_not_fee(self, start_date, end_date):
+        # Convert HTML date strings (e.g., "2025-03-01") to datetime objects
+        if not isinstance(start_date, datetime):
+            start_date = datetime.strptime(start_date, "%Y-%m-%d")
+        if not isinstance(end_date, datetime):
+            end_date = datetime.strptime(end_date, "%Y-%m-%d")
         # Calculate the difference in days
-        day_count = (end - start).days
+        day_count = (end_date - start_date).days
 
         # Ensure day_count is positive and makes sense
         if day_count <= 0:
             return "Error: End date must be after start date"
 
         # Calculate total price
-        total_price = (day_count+1) * self.__price
+        total_price = day_count * self.__price
         return total_price
-    """
-# ----------------------------------------------------------------------
+    
     def cal_price_accom(self, start_date, end_date, guest_amount=1):
         if isinstance(start_date, str):
             try:
@@ -104,6 +118,24 @@ class Accommodation:
         total_price = base_price + service_fee
         
         return total_price
+    
+    def get_price_accom(self, start_date, end_date, guest_amount, get_fee=False):
+        day_between = (end_date - start_date).days
+        total_price = (day_between) * self.get_price
+        fee = (total_price * (5 / 100)) * guest_amount
+        total_price = total_price + fee
+        if get_fee:
+            return fee
+        return total_price
+    
+    @property
+    def get_status (self):
+        return self.__status
+    
+    
+    
+    # def clear_accom_pics(self):
+    #     self.__accom_pics = []
 
 # -----------------------------------------------------------------------------
 
@@ -114,6 +146,12 @@ class Accommodation:
     @property
     def get_price(self):
         return self.__price
+    
+    """ dew
+    @property
+    def get_one_price(self):
+        return self.__price
+    """
 
     @property
     def get_id(self):
@@ -143,8 +181,11 @@ class Accommodation:
     def get_booked_date_list(self): # change from get_booked_date
         return self.__booked_date_list
 
-
-
+    """ dew
+    @property
+    def get_booked_date(self):
+        return self.__booked_date
+    """
 
     @property
     def get_reviews(self):
@@ -159,6 +200,7 @@ class Accommodation:
             if x.get_id == id:
                 return x
             
+    @property
     def get_booked_date(self, booked_date):
         from .Booking import BookedDate
         if not isinstance(booked_date, BookedDate):
@@ -168,6 +210,10 @@ class Accommodation:
                 if booked_date == booked:
                     return booked
             return "Cant find"
+        
+    def update_status(self) -> str:
+        self.__status = not self.__status
+        return "Success"
 
 #
 
@@ -178,6 +224,9 @@ class House(Accommodation):
         
     def cal_price(self, start_date, end_date):
         return self.cal_price_accom(start_date, end_date)
+    
+    def __str__(self):
+        return f"House: {self.get_acc_name}, Address: {self.get_address}, Price: {self.get_price}"
 
 
 
@@ -225,6 +274,9 @@ class Hotel(Accommodation):
             price = room.cal_price_accom(start_date, end_date)
             price_list.append(price)
         return price_list
+    
+    def __str__(self):
+        return f"Hotel: {self.get_acc_name}, Address: {self.get_address}, Rooms: {[str(room) for room in self.get_rooms]}"
 
     @property
     def get_price(self):
@@ -258,6 +310,9 @@ class Room(Accommodation):
     
     def cal_price(self,check_in, check_out, guest_amount=1):
         return self.cal_price_accom(check_in, check_out, guest_amount)
+    
+    def __str__(self):
+        return f"Room ID: {self.get_room_id} Floor: {self.get_room_floor} Price: {self.get_price} Address: {self.get_address}"
 
     @property
     def get_room_id(self):
@@ -279,7 +334,6 @@ class Review:
         self.__rating = rating
         self.__user = user
         self.__message = message
-        pass
 
     def get_info(self):
         return f"Review by {self.__user.get_user_name}: {self.__rating}/5 - {self.__message}"

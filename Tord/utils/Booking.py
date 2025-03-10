@@ -1,3 +1,5 @@
+from datetime import datetime
+
 class Booking:
     id = 1
 
@@ -19,8 +21,18 @@ class Booking:
         self.__price = None
         Booking.id += 1
 
+    # dew
+    @property
+    def reset_id(self):
+        Booking.count = 1
+        return "Success reset"
+
     def reset_increment(self):
         Booking.id = 1
+    
+    def set_status(self, status):
+        self.__booking_status = status
+        return "Success"
     
     @property
     def get_member(self):
@@ -37,6 +49,7 @@ class Booking:
     @property
     def get_date(self):
         return self.__date
+    
 
     @property
     
@@ -80,17 +93,73 @@ class Booking:
         self.__pay_med = pay_med
         return "Success"
         pass
+    
+    def update_date(self, start, end, up):
+        result = self.create_booked_date(start, end, up)
+        return result
+    
+    def update_guest(self, guest):
+        try:
+            if not (isinstance(guest, int)):
+                guest = int(guest)
+            self.__guess_amount = guest
+            return "Success"
+        except:
+            return "can't update guest"
 
     def create_payment(self, price, period, paymed):
         from .Payment import Payment
         payment = Payment(period=period, pay_med=paymed, price=price)
         return payment
     
+    def create_payment_and_med(self, payment, paymed, card_num, password, period, balance, point=10):
+        from .Payment import Payment
+        if self.__member.get_pay_med.get_bank_id == card_num:
+            return "You already Have this Card"
+        if paymed == "Debit":
+            paymed = self.create_pay_med(
+                card_num, self.__member, balance, password)
+        else:
+            paymed = self.create_pay_med(
+                card_num, self.__member, balance, password, point)
+        if payment == "OneTime":
+            payment = Payment(period=1, pay_med=paymed, price=self.__amount)
+        else:
+            payment = Payment(period=period, pay_med=paymed,
+                              price=self.__amount)
+        self.update_pay_med(paymed)
+        self.update_payment(payment)
+        return "Success"
+    
+    def create_pay_med(self, id, balance):
+        from .Payment import PaymentMethod
+        pay_med = PaymentMethod(
+            bank_id=id, user=self.__member, balance=balance)
+        return pay_med
+
+
+    def create_booked_date(self, start, end, from_front=False):
+        try:
+            if from_front:
+                start = datetime.strptime(start, "%Y-%m-%d")
+                end = datetime.strptime(end, "%Y-%m-%d")
+                if start > end:
+                    return "Input Date Error"
+
+                self.__booked_date = BookedDate(start, end)
+                return "success"
+            start = datetime.strptime(start, "%Y-%m-%d")
+            end = datetime.strptime(end, "%Y-%m-%d")
+            self.__booked_date = BookedDate(start, end)
+            return "success"
+        except:
+            return "create date got a problem"
+    
     def cal_price(self):
         try:
             result = self.get_accommodation.cal_price_accom(
-                self.get_date.get_checkindate, 
-                self.get_date.get_checkoutdate, 
+                self.get_booked_date.get_checkindate, 
+                self.get_booked_date.get_checkoutdate, 
                 self.get_guess_amount
             )
             return result
@@ -109,18 +178,20 @@ class Booking:
     # format booking class to text format
     def __str__(self):
         return (
-            f'-----------------------------------'
             f"Booking ID: {self.__booking_id}\n"
             f"Accommodation: {self.__accommodation.get_acc_name}\n"
-            f"Check-in Date: {self.__date.get_checkindate_pretty}\n"
-            f"Check-out Date: {self.__date.get_checkoutdate_pretty}\n"
+            f"Check-in Date: {self.__booked_date.get_checkindate_pretty}\n"
+            f"Check-out Date: {self.__booked_date.get_checkoutdate_pretty}\n"
             f"Number of Guests: {self.__guess_amount}\n"
             f"Booking Status: {self.__booking_status}\n"
             f"Member: {self.__member.get_user_name}\n"
             f"Payment: {self.__payment}\n"
             f"Payment Method: {self.__pay_med}"
-            f'-----------------------------------'
+            f"Price : {self.__price}"
         )
+        
+    def set_amount(self, amount):
+        self.__amount = amount
 
     
 

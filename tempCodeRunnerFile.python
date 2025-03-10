@@ -406,7 +406,7 @@ class ControlSystem:
         return result
         pass
     
-    def process_payment(self, booking_id, web_payment_method, web_payment_expired_date, web_payment_vcc,web_payment_type, web_period):
+    def process_payment(self, booking_id, web_payment_method, web_payment_expired_date, web_payment_vcc):
         process_booking = self.search_booking_by_id(booking_id)
         process_payment_method = self.search_payment_method_by_id(web_payment_method)
         if process_payment_method == None:
@@ -414,9 +414,7 @@ class ControlSystem:
         # try:
         # except Exception as e:
         #     return Html(P(e))
-        if (self.check_accom_available(process_booking)):
-            # create payment
-                          
+        if (self.check_accom_available(process_booking)):              
             # deduction
             if web_payment_expired_date == process_payment_method.get_expired_date_pretty and web_payment_vcc == str(process_payment_method.get_vcc_number): # check vcc and expired
                 if process_payment_method.deduction(process_booking.cal_price()) == "Not enough balance":
@@ -527,112 +525,139 @@ class ControlSystem:
         )
         
     def generate_booking_html(self, result_booking, booking_id, user_id):
-        result_member = self.search_member_by_id(user_id)
-        result_payment_method = self.search_payment_method_by_user_id(user_id)
-        
-        return (
-            Title("Request to Book"),
-            Div(
-                H1("Request to Book"),
-                Form(
-                    Div(
-                        H3("Your Trip"),
-                        Div(P(f"Accommodation: {self.search_booking_by_id(booking_id).get_accommodation.get_acc_name}"),
-                            style="margin-bottom: 15px;"),
-                        Div(P(f"Accommodation Booked Date: {self.search_booking_by_id(booking_id).get_accommodation.get_booked_date_string}"),
-                            style="margin-bottom: 15px;"),
-                        Div(P(f"Check-in: {result_booking.get_booked_date.get_checkindate}"),
-                            style="margin-bottom: 15px;"),
-                        Div(P(f"Check-out: {result_booking.get_booked_date.get_checkoutdate}"),
-                            style="margin-bottom: 15px;"),
-                        Div(P(f"Guests: {result_booking.get_guess_amount}"),
-                            style="margin-bottom: 15px;"),
-                        Div(P(f"Price: {result_booking.cal_price()}"),
-                            style="margin-bottom: 15px;"),
-                        style="border: 1px solid #ddd; padding: 20px; border-radius: 5px;"
-                    ),
-                    Div(
-                        H3("Your Payment Details"),
-                        Label("Choose Your Card"),
-                        Select(
-                            *[Option(f"Bank ID: {method.get_bank_id} (Balance: {method.get_balance})",
-                                value=method.get_bank_id)
-                            for method in result_payment_method],
-                            name="payment_method_id",
-                            required=True
+        # try:
+            result_member = self.search_member_by_id(user_id)
+            result_payment_method = self.search_payment_method_by_user_id(user_id)
+            return (
+                Title("Request to Book"),
+                Div(
+                    H1("Request to Book"),
+                    Form(
+                        Div(
+                            H3("Your Trip"),
+                            Div(
+                                P(f"Accommodation: {self.search_booking_by_id(booking_id).get_accommodation.get_acc_name}"),
+                                style="margin-bottom: 15px;"
+                            ),
+                            Div(
+                                P(f"Accommodation Booked Date: {self.search_booking_by_id(booking_id).get_accommodation.get_booked_date_string}"),
+                                style="margin-bottom: 15px;"
+                            ),
+                            Div(
+                                P(f"Check-in: {result_booking.get_booked_date.get_checkindate}"),
+                                style="margin-bottom: 15px;"
+                            ),
+                            Div(
+                                P(f"Check-out: {result_booking.get_booked_date.get_checkoutdate}"),
+                                style="margin-bottom: 15px;"
+                            ),
+                            Div(
+                                P(f"Guests: {result_booking.get_guess_amount}"),
+                                style="margin-bottom: 15px;"
+                            ),
+                            Div(
+                                P(f"Price: {result_booking.cal_price()}"),
+                                style="margin-bottom: 15px;"
+                            ),
+                            style="border: 1px solid #ddd; padding: 20px; border-radius: 5px;"
                         ),
                         Div(
-                            Label("Expired Date"),
-                            Input(type="date", name="expired_date", required=True),
-                            style="margin-bottom: 15px;"
-                        ),
-                        Div(
-                            Label("VCC Number"),
-                            Input(type="text", name="vcc_number", required=True),
-                            style="margin-bottom: 15px;"
-                        ),
-                        Div(
-                            Label("Payment Type"),
+                            H3("Your Payment Details"),
+                            Label("Choose Your Card"),
                             Select(
-                                #TODO:
-                                Option("One Time", value="OneTime"),
-                                Option("Period", value="Period"),
-                                name="payment_type",
+                                *[Option(
+                                    f"Bank ID: {method.get_bank_id} (Balance: {method.get_balance})",
+                                    value=method.get_bank_id
+                                ) for method in result_payment_method],
+                                name="payment_method_id",
                                 required=True
                             ),
                             Div(
-                                Label("Period"),
-                                Input(type="number", name="period", required=False, value="2"),
-                                id="periodInput",
-                                style="margin-bottom: 15px; display: none;"
+                                Label("Expired Date"),
+                                Input(type="date", name="expired_date", required=True),
+                                # Input(type="text", name="full_name", required=True),
+                                style="margin-bottom: 15px;"
                             ),
+                            Div(
+                                Label("VCC Number"),
+                                Input(type="text", name="vcc_number", required=True),
+                                # Input(type="text", name="payment_method", required=True),
+                                style="margin-bottom: 15px;"
+                            ),
+                            Div( #one time or period
+                                Label("Payment Type"),
+                                Select(
+                                    Option("One Time", value="OneTime"),
+                                    Option("Period", value="Period"),
+                                    name="payment_type",
+                                    required=True
+                                ),
+                                
+                                Div(
+                                    Label("Period"),
+                                    Input(type="number", name="period", required=True),
+                                    id="periodInput",
+                                    style="margin-bottom: 15px; display: none;"
+                                ),
+                            ),
+                            Div(
+                                Label("Message to Host"),
+                                Textarea(name="message", rows="4", placeholder="Tell the host about your trip..."),
+                                style="margin-bottom: 15px;"
+                            ),
+                            style="border: 1px solid #ddd; padding: 20px; border-radius: 5px; margin-top: 20px; margin-bottom: 20px;"
                         ),
-                        Div(
-                            Label("Message to Host"),
-                            Textarea(name="message", 
-                                    rows="4", 
-                                    placeholder="Tell the host about your trip..."),
-                            style="margin-bottom: 15px;"
-                        ),
-                        style="border: 1px solid #ddd; padding: 20px; border-radius: 5px; margin-top: 20px; margin-bottom: 20px;"
+                        Button("Request to Book", type="submit",
+                            style="background-color: #FF5A5F; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;"),
+                        action=f"/process_payment/booking_id={result_booking.get_booking_id}",
+                        method="post",
+                        onsubmit="return validateForm()"
                     ),
-                    Button("Request to Book", 
-                        type="submit",
-                        style="background-color: #FF5A5F; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;"),
-                    action=f"/process_payment/booking_id={result_booking.get_booking_id}",
-                    method="post",
-                    onsubmit="return validateForm()"
-                ),
-                Script("""
-                    function togglePeriodInput() {
-                        var paymentType = document.querySelector('select[name="payment_type"]').value;
-                        var periodInput = document.getElementById('periodInput');
-                        periodInput.style.display = paymentType === 'Period' ? 'block' : 'none';
-                    }
-
-                    document.querySelector('select[name="payment_type"]').addEventListener('change', togglePeriodInput);
-
-                    function validateForm() {
-                        var paymentType = document.querySelector('select[name="payment_type"]').value;
-                        var periodInput = document.querySelector('input[name="period"]');
-                        if (paymentType === 'Period' && !periodInput.value) {
-                            alert('Please enter a period.');
-                            return false;
+                    Script(
+                        """
+                        function togglePeriodInput() {
+                            var paymentType = document.querySelector('select[name="payment_type"]').value;
+                            var periodInput = document.getElementById('periodInput');
+                            if (paymentType === 'Period') {
+                                periodInput.style.display = 'block';
+                            } else {
+                                periodInput.style.display = 'none';
+                            }
                         }
-                        return true;
-                    }
-                """),
-                Form(
-                    Input(type="hidden", name="user_id", value=user_id),
-                    Button("Didn't have a card?", type="submit"),
-                    action="/payment/add",
-                    method="POST"
-                ),
-                style="max-width: 500px; margin: 0 auto; padding: 20px;"
-            )
-        )
+
+                        document.querySelector('select[name="payment_type"]').addEventListener('change', togglePeriodInput);
+
+                        function validateForm() {
+                            var paymentType = document.querySelector('select[name="payment_type"]').value;
+                            var periodInput = document.querySelector('input[name="period"]');
+                            if (paymentType === 'Period' && periodInput.value === '') {
+                                alert('Please enter a period.');
+                                return false;
+                            }
+                            return true;
+                        }
+                        """
+                    ),
+                    ),
+                    Form(
+                        Input(type="hidden", name="user_id", value=user_id),
+                        Button("didn't have card?", type="submit"),
+                        action="/payment/add",
+                        method="POST",
+                        # target="_blank"
+                    ),
+                    # style="border: 1px solid #ddd; padding: 20px; border-radius: 5px; margin-top: 20px; margin-bottom: 20px;"
+                    
+                    
+                    style="max-width: 500px; margin: 0 auto; padding: 20px;",
+                    
+                    
+                )
+            ) #fix
+        # except Exception as e:
+        #     return Html(P(str(e)))
         
-    def get_html_index(self, user_id = None):
+    def get_html_index(self):
         filtered_accommodation_list = []
         for accom in self.get_accommodation_list:
             from .Accommodation import Room
@@ -701,12 +726,7 @@ class ControlSystem:
                 Header(
                     A("Airbnb", cls="logo", href="/"),
                     Nav(
-                        Form(
-                            Button("Stays", type="submit"),
-                            action=f"/booking_history/{user_id}",  # Move action to Form, use f-string
-                            method="get",
-                            cls="nav-form"  # Optional: add a class for styling
-                        ),
+                        A("Stays", href="#"),
                         A("Experiences", href="#"),
                         A("Online Experiences", href="#"),
                         cls="nav-menu"
@@ -714,7 +734,7 @@ class ControlSystem:
                     Div(
                         Form(
                             Input(type="text", name="search_query", placeholder="Where are you going?", required=True),
-                            Input(type="date", name="check_in", style="margin-right: 10px;", required=True),
+                            Input(type="date", name="check_in", style="margin-right: 10px;",required=True),
                             Input(type="date", name="check_out", style="margin-right: 10px;", required=True),
                             Button("Search", type="submit"),
                             action="/search",
@@ -889,24 +909,22 @@ class ControlSystem:
         show_booking_detail.append(booking.get_booking_status)
         show_booking_detail.append(booking.get_date)
         show_booking_detail.append(booking.get_amount)
-        show_booking_detail.append(booking.get_guess_amount)
-
-
+        
         booked_date = booking.get_booked_date
         accom = booking.get_accommodation
-
+        
         show_booking_detail.append(booked_date.get_checkindate)
         show_booking_detail.append(booked_date.get_checkoutdate)
-
+        
         show_booking_detail.append(accom.get_acc_name)
         show_booking_detail.append(accom.get_info)
         show_booking_detail.append(accom.get_address)
-
+        
         host = self.search_host_by_accom(accom)
-
+        
         show_booking_detail.append(host.get_user_name)
         show_booking_detail.append(host.get_phone_num)
-
+        
         return show_booking_detail
     
     def cancel_booking(self, booking_id):
@@ -1298,7 +1316,7 @@ class ControlSystem:
         # except:
         #     return 'Fee MEE pan HAA'
         
-    def get_all_price(self, booking_id, out_int=False): # true if want int
+    def get_all_price(self, booking_id, out_int=False):
         try:
             total_price_with_fee = self.get_fee(
                 booking_id, out_int=True)+self.get_total_price_to_show(booking_id, out_int=True)
@@ -1500,10 +1518,6 @@ class ControlSystem:
                                     Td("fee",style="background-color:white;color:black;"),
                                     Td("$"+self.get_fee(book_id),style="background-color:white;color:black;")
                                 ),
-                                Tr(
-                                    Td(B("total",style="background-color:white;color:black;")),
-                                    Td(B("$"+self.get_all_price(book_id),style="background-color:white;color:black;"))   
-                                ),
                                 style="background-color:white;"
                             ),
                             header=H4("Price Details",
@@ -1626,10 +1640,8 @@ class ControlSystem:
         )   
         
     def get_html_view_booking_detail(self, user_id, booking_id):
-        control_system = self
-        detail = control_system.get_booking_detail(booking_id)
+        detail = self.get_booking_detail(booking_id)
         cancel_button = None
-        edit_detail = None
         if detail[1] != "Cancelled" and detail[1] != "Completed":
             cancel_button = Form(
                 Hidden(name="_method", value="PUT"),
@@ -1638,16 +1650,6 @@ class ControlSystem:
                 action=f"/cancel_booking/{detail[0]}"
             )
 
-        ###########################################
-        if detail[1] == "Waiting":
-            edit_detail = Form(
-                Button("Change detail", type="submit"),
-                method="get",
-                #ส่งไปหน้าดิวที่ใช้ในการอัปเดรต booking
-                action=f"/edit_date_guest/{booking_id}"
-            )
-
-        #############################################
         if detail == None:
             return Container(H1("Can't Find Booking"),
                     Form(Button("Back to Booking History", type="submit"), 
@@ -1655,29 +1657,26 @@ class ControlSystem:
                     action=f"/booking_history/{user_id}"
                 )
         )
-        else:
+        else:       
             return Titled(
             f"Booking Detail for {detail[0]}",
             Container(
                 P(f"Booking ID: {detail[0]}"),
                 P(f"Status: {detail[1]}"),
                 P(f"date: {detail[2]}"),
-                P(f"Accommodation Name: {detail[7]}"),
-                P(f"Guess Amount: {detail[4]}"),
-                P(f"Check-In Date: {detail[5]}"),
-                P(f"Check-Out Date: {detail[6]}"),
+                P(f"Accommodation Name: {detail[6]}"),
+                P(f"Check-In Date: {detail[4]}"),
+                P(f"Check-Out Date: {detail[5]}"),
                 P(f"Amount: {detail[3]}"),
-                P(f"Accommodation Info: {detail[8]}"),
-                P(f"Address: {detail[9]}"),
-                P(f"Host Name: {detail[10]}"),
-                P(f"Phone Number: {detail[11]}"),
-                edit_detail,
+                P(f"Accommodation Info: {detail[7]}"),        
+                P(f"Address: {detail[8]}"),
+                P(f"Host Name: {detail[9]}"),
+                P(f"Phone Number: {detail[10]}"),
                 cancel_button,
                 Form(Button("Back to Booking History", type="submit"), 
                     method="get",
                     action=f"/booking_history/{user_id}"
                 )
-            
             )
         )
             
@@ -1711,14 +1710,11 @@ class ControlSystem:
         )
         
     def get_html_update_date_guest(self, start, end, guest_amount, book_id):
-        try:
-            date_result = self.update_date(book_id, start, end)
-            guest_result = self.update_guest(book_id, guest_amount)
-            amount = self.get_all_price(book_id, True)
-            self.get_booking_by_id(book_id).set_amount(amount)
-            return Redirect(f"/booking/{book_id}")  # ส่งผู้ใช้กลับไปยังหน้าจอง
-        except Exception as e:
-            return Html(e)
+        date_result = self.update_date(book_id, start, end)
+        guest_result = self.update_guest(book_id, guest_amount)
+        amount = self.get_all_price(book_id, True)
+        self.get_booking_by_id(book_id).set_amount(amount)
+        return Redirect(f"/booking/{book_id}")  # ส่งผู้ใช้กลับไปยังหน้าจอง
         return Div(
             H1(f"Booking updated successfully!",
             style=""" text-align: center; background-color: #f4f4f4;color:black;"""
@@ -2890,26 +2886,3 @@ class ControlSystem:
         print(booking_status)
         pass
 
-
-    def show_accom_to_update(self):
-        accom_to_update = []
-        for accom in self.get_accommodation_list:
-            detail = []
-            detail.append(accom.get_id)
-            detail.append(accom.get_status)
-            accom_to_update.append(detail)
-
-        return accom_to_update
-
-    def approve_accommodation(self,accom_id):
-        accom = self.search_accom_by_id(accom_id)
-        result = accom.update_status()
-
-        return result
-    
-    def get_member_id(self, name, email, phone_number, password):
-        for i in self.__member_list:
-            text, bool_check = i.login(name, email, phone_number, password)
-            if bool_check:
-                return text
-        return text

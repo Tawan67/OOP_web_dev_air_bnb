@@ -33,6 +33,9 @@ class User:
     @property
     def get_email(self):
         return self.__email
+    
+    def __str__(self):
+        return f"User ID: {self.__user_id}\nUser Name: {self.__user_name}\nEmail: {self.__email}"
 
 
 class Member(User):
@@ -78,6 +81,11 @@ class Member(User):
     @property
     def get_payment_method_list(self):
         return self.__payment_method
+    
+    def __str__(self):
+        return super().__str__() + f", Payment Method: {[str(paymed) for paymed in self.__payment_method]}"
+    
+
 
 
 class Host(User):

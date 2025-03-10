@@ -1,1 +1,1 @@
-/view_booking_detail/{user_id}/{booking_id}
+/booking_history/
