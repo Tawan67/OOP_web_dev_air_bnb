@@ -34,6 +34,10 @@ class User:
     def get_email(self):
         return self.__email
     
+    @property
+    def get_password(self):
+        return self.__password
+    
     def __str__(self):
         return f"User ID: {self.__user_id}\nUser Name: {self.__user_name}\nEmail: {self.__email}"
 
@@ -46,6 +50,7 @@ class Member(User):
         self.__payment_method = []
         self.__my_coupons = []
         self.__booking_list = []
+        self.__host = None
 
     def add_payment_method(self, payment_method):
         from .Payment import PaymentMethod
@@ -84,6 +89,15 @@ class Member(User):
     
     def __str__(self):
         return super().__str__() + f", Payment Method: {[str(paymed) for paymed in self.__payment_method]}"
+    
+    def login(self, name, email, phone_num, password):
+        if not (self.get_user_name == name or self.get_email == email):
+            return "Wrong name or email", False
+        if not (self.get_phone_num == phone_num):
+            return "Wrong Phone Num", False
+        if not (self.get_password == password):
+            return "Wrong Password ", False
+        return self.get_user_id, True
     
 
 

@@ -1,5 +1,7 @@
 from fasthtml.common import *
 from datetime import datetime, timedelta
+import json
+from fastapi import Request
 
 
 class ControlSystem:
@@ -136,21 +138,20 @@ class ControlSystem:
 
 # FIXME:
 # ----------------------------------------------- downnnnnnnn
-    def create_booking(self, accom, date, guess, member):
-
-        if accom == "Not Found":
-            return "Error: Accommodation not found"
-        # Create the booking
+    # def create_booking(self, guest_amount, accom_id, price, menber_id,check_in,check_out):
+    def create_booking(self, user_id, check_in, check_out, accom_id, total_price, guests):
+        # guest_amount = int(guest_amount)
+        price = int(total_price)
+        accom_id = int(accom_id)
+        member = self.search_member_by_id(user_id)
+        accom = self.search_accom_by_id(accom_id)
         from .Booking import Booking
-        new_booking = Booking(accom=accom, date=date, guess=guess,
-                              member=member)
-        self.__booking_list.append(new_booking)
+        booking_item = Booking(accom=accom,
+                               guess=guests, member=member)
+        booking_item.update_date(check_in, check_out)
+        self.add_booking(booking_item)
 
-        # Check availability
-        if not self.check_accom_available(new_booking):
-            return "Error: Accommodation not available for these dates"
-
-        return new_booking
+        return booking_item
 # ---------------------------------------------------
 
     """
@@ -211,6 +212,7 @@ class ControlSystem:
         return None
 
     def create_account(self, name: str, email: str, password: str, phone: str, age: int):  # dew
+        from .User import Member
         acount = Member(name=name, email=email,
                         password=password, phone_num=phone, age=age)
         self.add_member(acount)
@@ -242,6 +244,7 @@ class ControlSystem:
 
     def find_total_price(self, accom_id, start_date, end_date, guest_amount):
         accommodation = self.search_accomodation_by_id(accom_id)
+        from .Accommodation import House, Hotel
         if isinstance(accommodation, House):
             total_price = accommodation.get_price_accom(
                 start_date, end_date, guest_amount
@@ -744,7 +747,8 @@ class ControlSystem:
                             cls="card"
                         ), style="text-decoration: none; color: inherit;", href=f"/accommodation/{accom.get_id}") for accom in filtered_accommodation_list],
                         cls="container"
-                    )
+                    ),
+                    P(f"user id : {user_id}"),
                 )
             )
         )
@@ -1119,7 +1123,15 @@ class ControlSystem:
         reset.reset_increament()
         new_house = House("test_house", "location", "description", 6969,
                           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJxo2NFiYcR35GzCk5T3nxA7rGlSsXvIfJwg&s")
-
+        accom_pics = [
+            "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg",
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4wLkW7-Z5PXiWG6VF7BjPpGTjmVIZwZHo3Zb5vJf8nppOzQhjfRdx2GTAfr6JaO1uHeA&usqp=CAU",
+            "https://t4.ftcdn.net/jpg/09/22/37/79/360_F_922377968_S7Y7lesMSbv91kQtO2u1GET0bUtgOrL1.jpg",
+            "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+            "https://www.brightonhomes-idaho.com/2020/wp-content/uploads/2020/03/Available_Homes-600x400.jpg",
+        ]
+        for pic in accom_pics:
+            new_house.add_accom_pics(pic)
         self.add_accommodation(new_house)
 
         new_host = Host(name="Tro", email="saygex1@gmail.com",
@@ -1789,7 +1801,7 @@ class ControlSystem:
         detail = self.search_accom_detail(accom_id)
 
         accommodation1 = self.search_accom_by_id(accom_id)
-        if accom_id == 21:
+        if accom_id == 1:
             accom_pics = [
                 "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg",
                 "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4wLkW7-Z5PXiWG6VF7BjPpGTjmVIZwZHo3Zb5vJf8nppOzQhjfRdx2GTAfr6JaO1uHeA&usqp=CAU",
@@ -1797,34 +1809,34 @@ class ControlSystem:
                 "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
                 "https://www.brightonhomes-idaho.com/2020/wp-content/uploads/2020/03/Available_Homes-600x400.jpg",
             ]
-        elif accom_id == 22:
-            accom_pics = [
-                "https://images.immediate.co.uk/production/volatile/sites/3/2021/05/minecraft-blueprints-0d97805.png",
-                "https://images.immediate.co.uk/production/volatile/sites/3/2021/05/victorian-castle-minecraft-d5a2a31.png",
-                "https://i.pinimg.com/736x/4f/58/10/4f5810b188b42fb7af207cc77bef2e9c.jpg",
-                "https://i.ytimg.com/vi/gL_4xJ6TO7g/maxresdefault.jpg",
-                "https://assetsio.gnwcdn.com/pale-garden-house.jpg?width=1200&height=630&fit=crop&enable=upscale&auto=webp",
-            ]
-        elif accom_id == 23:
-            accom_pics = [
-                "https://example.com/accom3_img1.jpg",
-                "https://example.com/accom3_img2.jpg",
-                "https://example.com/accom3_img3.jpg",
-                "https://example.com/accom3_img4.jpg",
-                "https://example.com/accom3_img5.jpg",
-            ]
-        elif accom_id == 24:
-            accom_pics = [
-                "https://example.com/accom4_img1.jpg",
-                "https://example.com/accom4_img2.jpg",
-                "https://example.com/accom4_img3.jpg",
-                "https://example.com/accom4_img4.jpg",
-                "https://example.com/accom4_img5.jpg",
-            ]
+        # elif accom_id == 22:
+        #     accom_pics = [
+        #         "https://images.immediate.co.uk/production/volatile/sites/3/2021/05/minecraft-blueprints-0d97805.png",
+        #         "https://images.immediate.co.uk/production/volatile/sites/3/2021/05/victorian-castle-minecraft-d5a2a31.png",
+        #         "https://i.pinimg.com/736x/4f/58/10/4f5810b188b42fb7af207cc77bef2e9c.jpg",
+        #         "https://i.ytimg.com/vi/gL_4xJ6TO7g/maxresdefault.jpg",
+        #         "https://assetsio.gnwcdn.com/pale-garden-house.jpg?width=1200&height=630&fit=crop&enable=upscale&auto=webp",
+        #     ]
+        # elif accom_id == 23:
+        #     accom_pics = [
+        #         "https://example.com/accom3_img1.jpg",
+        #         "https://example.com/accom3_img2.jpg",
+        #         "https://example.com/accom3_img3.jpg",
+        #         "https://example.com/accom3_img4.jpg",
+        #         "https://example.com/accom3_img5.jpg",
+        #     ]
+        # elif accom_id == 24:
+        #     accom_pics = [
+        #         "https://example.com/accom4_img1.jpg",
+        #         "https://example.com/accom4_img2.jpg",
+        #         "https://example.com/accom4_img3.jpg",
+        #         "https://example.com/accom4_img4.jpg",
+        #         "https://example.com/accom4_img5.jpg",
+        #     ]
         else:
             accom_pics = []  # Default empty list if no match
 
-        accommodation1.clear_accom_pics()
+        # accommodation1.clear_accom_pics()
 
         for pic in accom_pics:
             accommodation1.add_accom_pics(pic)
@@ -2425,11 +2437,11 @@ class ControlSystem:
                             cls="submit-button",
                         ),
                         # ✅ เพิ่ม div ซ่อนค่า occupied_dates ไว้
-                        Div(
-                            json.dumps(detail[5]),
-                            id="occupied-dates",
-                            style="display:none;",
-                        ),
+                        # Div(
+                        #     json.dumps(detail[5]),
+                        #     id="occupied-dates",
+                        #     style="display:none;",
+                        # ),
                         cls="price-box",
                         method="post",
                         action=f"/price_summary/{user_id}/{accom_id}",
@@ -2927,8 +2939,8 @@ class ControlSystem:
             ),
         )
 
-    def get_html_create_booking(user_id, check_in, check_out, accom_id, total_price, guests):
-        controlsystem = Self
+    def get_html_create_booking(self, user_id, check_in, check_out, accom_id, total_price, guests):
+        controlsystem = self
         print(
             f"Received data: user_id={user_id}, check_in={check_in}, check_out={check_out}, accom_id={accom_id}, total_price={total_price}, guests={guests}"
         )
@@ -2940,11 +2952,21 @@ class ControlSystem:
             total_price = float(total_price)  # Ensure price is an integer
         except ValueError:
             return "Invalid data received", 400
-        booking_status = controlsystem.create_booking(
+        booking_item = controlsystem.create_booking(
             user_id, check_in, check_out, accom_id, total_price, guests
         )
-        print(booking_status)
-        pass
+        print(booking_item)
+        if isinstance(booking_item, str):
+            return P(booking_item)
+        booking_id = booking_item
+
+        return Div(Form(
+            # Input(type="hidden", name="user_id", value=f"{user_id}"),
+            # Input(type="hidden", name="booking_id", value=f"{booking_id}"),
+            Button("Pay", type="submit", cls="reserve-shit"),
+            method="get",
+            action=f"/booking/{booking_id}",
+        ))
 
     def show_accom_to_update(self):
         accom_to_update = []
@@ -2968,3 +2990,14 @@ class ControlSystem:
             if bool_check:
                 return text
         return text
+
+    def create_account(self, name: str, email: str, password: str, phone: str, age: int):  # dew
+        try:
+            from .User import Member
+            acount = Member(name=name, email=email,
+                            password=password, phone_num=phone, age=age)
+            self.add_member(acount)
+            return "Success"
+        except:
+            return "Fail to Sign Up"
+        pass

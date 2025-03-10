@@ -3,12 +3,12 @@ from datetime import datetime
 class Booking:
     id = 1
 
-    def __init__(self, accom, date, guess, member):
+    def __init__(self, accom, guess, member):
         self.__booking_id = Booking.id
         self.__accommodation = accom
         # self.__date = date วันที่ทำรายการจอง
         self.__booked_date = None
-        self.__date = date
+        self.__date = datetime.now()
         self.__amount = 0  # ราคาที่ต้องจ่าย
         self.__guess_amount = guess
         self.__booking_status = "Waiting"
@@ -94,8 +94,8 @@ class Booking:
         return "Success"
         pass
     
-    def update_date(self, start, end, up):
-        result = self.create_booked_date(start, end, up)
+    def update_date(self, start, end):
+        result = self.create_booked_date(start, end)
         return result
     
     def update_guest(self, guest):
@@ -138,16 +138,8 @@ class Booking:
         return pay_med
 
 
-    def create_booked_date(self, start, end, from_front=False):
+    def create_booked_date(self, start, end):
         try:
-            if from_front:
-                start = datetime.strptime(start, "%Y-%m-%d")
-                end = datetime.strptime(end, "%Y-%m-%d")
-                if start > end:
-                    return "Input Date Error"
-
-                self.__booked_date = BookedDate(start, end)
-                return "success"
             start = datetime.strptime(start, "%Y-%m-%d")
             end = datetime.strptime(end, "%Y-%m-%d")
             self.__booked_date = BookedDate(start, end)

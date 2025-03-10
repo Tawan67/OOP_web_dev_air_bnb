@@ -214,6 +214,9 @@ class Accommodation:
     def update_status(self) -> str:
         self.__status = not self.__status
         return "Success"
+    
+    def clear_accom_pics(self):  # ✅ Add this method
+        self.__accom_pics = []
 
 #
 
