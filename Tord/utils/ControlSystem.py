@@ -2,6 +2,7 @@ from fasthtml.common import *
 from datetime import datetime, timedelta
 import json
 from fastapi import Request
+from typing import Optional  # For Optional[int] in form handling
 
 
 class ControlSystem:
@@ -11,7 +12,11 @@ class ControlSystem:
         self.__host_list = []
         self.__accommodation_list = []  # stored hotel, house
         self.__payment_method_list = []
+        self.__payment_list = []
         # self.__balance = None ไม่ควรมี เพราะ ค่านี้คสวรอยู่ใน paymed
+
+    def add_payment(self, input1):
+        self.__payment_list.append(input1)
 
     @property
     def get_booking_list(self):
@@ -31,6 +36,7 @@ class ControlSystem:
 
     def add_host(self, host):
         from .User import User
+
         if not isinstance(host, User):
             return "Error"
         else:
@@ -39,6 +45,7 @@ class ControlSystem:
 
     def add_accommodation(self, accommodation):  # t
         from .Accommodation import Accommodation
+
         if not isinstance(accommodation, Accommodation):
             return "Error"
         else:
@@ -60,8 +67,7 @@ class ControlSystem:
             print(f"{s.strftime('%b')} {s.day} - {e.day}")
             return f"{s.strftime('%b')} {s.day} - {e.day}"
         else:
-            print(
-                f"{s.strftime('%b')} {s.day} - {e.strftime('%b')} {e.day}")
+            print(f"{s.strftime('%b')} {s.day} - {e.strftime('%b')} {e.day}")
             return f"{s.strftime('%b')} {s.day} - {e.strftime('%b')} {e.day}"
 
     def get_guest_amount(self, book_id):
@@ -110,6 +116,7 @@ class ControlSystem:
 
     def add_booking(self, booking):
         from .Booking import Booking
+
         if not isinstance(booking, Booking):
             return "Error"
         else:
@@ -118,6 +125,7 @@ class ControlSystem:
 
     def add_member(self, member):  # k0
         from .User import Member
+
         if not isinstance(member, Member):
             return "Error"
         else:
@@ -136,24 +144,27 @@ class ControlSystem:
                 return i
         return "Not Found"
 
-# FIXME:
-# ----------------------------------------------- downnnnnnnn
+    # FIXME:
+    # ----------------------------------------------- downnnnnnnn
     # def create_booking(self, guest_amount, accom_id, price, menber_id,check_in,check_out):
-    def create_booking(self, user_id, check_in, check_out, accom_id, total_price, guests):
+    def create_booking(self, user_id, check_in, check_out, accom_id, guests):
         # guest_amount = int(guest_amount)
         user_id = int(user_id)
         price = int(total_price)
         accom_id = int(accom_id)
         member = self.search_member_by_id(user_id)
+        if member == None:
+            member = self.search_host_by_id(user_id)
         accom = self.search_accom_by_id(accom_id)
         from .Booking import Booking
-        booking_item = Booking(accom=accom,
-                               guess=guests, member=member)
+
+        booking_item = Booking(accom=accom, guess=guests, member=member)
         booking_item.update_date(check_in, check_out)
         self.add_booking(booking_item)
 
         return booking_item
-# ---------------------------------------------------
+
+    # ---------------------------------------------------
 
     """
     def create_booking(self, date, guest_amount, accom_id, price, member_id):
@@ -165,10 +176,11 @@ class ControlSystem:
         self.add_booking(booking_item)
         pass
     """
-# --------------------------------------------------^^^^^^^
+    # --------------------------------------------------^^^^^^^
 
     def search_booking_by_user(self, user):
         from .User import User
+
         if not isinstance(user, User):
             return "Error"
         print(user)
@@ -204,6 +216,7 @@ class ControlSystem:
 
         # Give back all the matches we found
         return matching_accommodations
+
     # ----------------------------------------------=tord1 ^^^^^^^^^
 
     def search_booking_by_id(self, booking_id):
@@ -212,10 +225,14 @@ class ControlSystem:
                 return booking
         return None
 
-    def create_account(self, name: str, email: str, password: str, phone: str, age: int):  # dew
+    def create_account(
+        self, name: str, email: str, password: str, phone: str, age: int
+    ):  # dew
         from .User import Member
-        acount = Member(name=name, email=email,
-                        password=password, phone_num=phone, age=age)
+
+        acount = Member(
+            name=name, email=email, password=password, phone_num=phone, age=age
+        )
         self.add_member(acount)
         pass
 
@@ -223,6 +240,7 @@ class ControlSystem:
         # Find the accommodation
         accom = booking.get_accommodation
         from .Accommodation import Accommodation
+
         if accom == "Not Found" and not isinstance(accom, Accommodation):
             return False
 
@@ -232,20 +250,25 @@ class ControlSystem:
             existing_check_out = booked_date.get_checkoutdate
 
             # Overlap condition: if the requested range intersects with an existing range
-            if (booking.get_booked_date.get_checkindate < existing_check_out) and (booking.get_booked_date.get_checkoutdate > existing_check_in):
+            if (booking.get_booked_date.get_checkindate < existing_check_out) and (
+                booking.get_booked_date.get_checkoutdate > existing_check_in
+            ):
                 return False  # Not available
         return True  # Available
-# ---------------------------------------------- cal toartal price
+
+    # ---------------------------------------------- cal toartal price
 
     def cal_price_in_accom(self, accom_id, guest, start_date, end_date):
         accom = self.search_accom_by_id(accom_id=accom_id)
         price = accom.cal_price(guest, start_date, end_date)
         return price
-# -----------------------------------------------
+
+    # -----------------------------------------------
 
     def find_total_price(self, accom_id, start_date, end_date, guest_amount):
         accommodation = self.search_accomodation_by_id(accom_id)
         from .Accommodation import House, Hotel
+
         if isinstance(accommodation, House):
             total_price = accommodation.get_price_accom(
                 start_date, end_date, guest_amount
@@ -256,10 +279,12 @@ class ControlSystem:
                 if room.get_id == accom_id:
                     return room.get_price_accom(start_date, end_date, guest_amount)
         return None
-# -----------------------------------------------------
+
+    # -----------------------------------------------------
 
     def search_host_by_accom(self, accom):
         from .Accommodation import Accommodation
+
         if not isinstance(accom, Accommodation):
             return "Error"
         for host in self.get_host_list:
@@ -267,6 +292,7 @@ class ControlSystem:
                 if accom == acc_in_host:
                     return host
         return "Not Found"
+
     # get accom detail
 
     def search_accom_detail(self, accom_id):
@@ -308,13 +334,22 @@ class ControlSystem:
         return "Not Found"
 
     def search_host_by_id(self, user_id):
+        if isinstance(user_id, str):
+            user_id = int(user_id)
         for host in self.__host_list:
-            if host.get_user_id == user_id:
+            if host.get_user_id == int(user_id):
                 return host
+        return "Host Not Found"
 
-    def search_user_to_check(self, user_name, phone, email, password, age):  # dew not sure
+    def search_user_to_check(
+        self, user_name, phone, email, password, age
+    ):  # dew not sure
         for member in self.__member_list:
-            if member.get_phone_num == phone and member.get_user_nane == user_name and member.get_email == email:
+            if (
+                member.get_phone_num == phone
+                and member.get_user_nane == user_name
+                and member.get_email == email
+            ):
                 return "You have an Account, Wanna Login?"
         try:
             self.create_account(name=user_name, email=email,
@@ -326,16 +361,20 @@ class ControlSystem:
 
     # korn does it really needed?
     def search_host_by_id_get_accom(self, user_id):
+        if isinstance(user_id, str):
+            user_id = int(user_id)
         that_host = None
+        listhost = []
         for host in self.__host_list:
+            listhost.append(host.get_user_id)
             if host.get_user_id == user_id:
                 that_host = host
                 break
         if that_host is None:
-            return "Host Not Found"
+            return f"Host Not Found----- {listhost}-----{user_id}"
         my_accom_list = that_host.get_accommodation
         accom_list = [
-            {"name": myaccom.get_acc_name, "address ": myaccom.get_address}
+            {"name": myaccom.get_acc_name, "address": myaccom.get_address}
             for myaccom in my_accom_list
         ]
         return accom_list
@@ -358,7 +397,7 @@ class ControlSystem:
     def search_host_by_id_get_review(self, user_id):  # korn
         that_host = None
         for host in self.__host_list:
-            if host.get_user_id == user_id:
+            if host.get_user_id == int(user_id):
                 that_host = host
                 break
         if that_host is None:
@@ -381,7 +420,8 @@ class ControlSystem:
     def create_payment(self, price, period, paymed, booking_id):
         booking_item = self.search_booking_by_id(booking_id=booking_id)
         payment = booking_item.create_payment(price, period, paymed)
-        result = self.update_booking_pay(payment)
+        result = self.update_booking_payment(booking_id, payment)
+        self.add_payment(payment)
         return result
         pass  # call Booking to create
 
@@ -408,7 +448,15 @@ class ControlSystem:
         return result
         pass
 
-    def process_payment(self, booking_id, web_payment_method, web_payment_expired_date, web_payment_vcc, web_payment_type, web_period):
+    def process_payment(
+        self,
+        booking_id,
+        web_payment_method,
+        web_payment_expired_date,
+        web_payment_vcc,
+        web_payment_type,
+        web_period,
+    ):
         process_booking = self.search_booking_by_id(booking_id)
         process_payment_method = self.search_payment_method_by_id(
             web_payment_method)
@@ -417,16 +465,39 @@ class ControlSystem:
         # try:
         # except Exception as e:
         #     return Html(P(e))
-        if (self.check_accom_available(process_booking)):
-            # create payment
+        if self.check_accom_available(process_booking):
+            # Verify
+            if (
+                web_payment_expired_date
+                == process_payment_method.get_expired_date_pretty
+                and web_payment_vcc == str(process_payment_method.get_vcc_number)
+            ):
 
-            # deduction
-            # check vcc and expired
-            if web_payment_expired_date == process_payment_method.get_expired_date_pretty and web_payment_vcc == str(process_payment_method.get_vcc_number):
-                if process_payment_method.deduction(process_booking.cal_price()) == "Not enough balance":
-                    return Html(P("Not enough balance"))
+                # create payment
+                from .Payment import Payment
+
+                new_payment = Payment(
+                    web_period, process_payment_method, self.get_all_price(
+                        booking_id)
+                )
+                process_booking.update_payment(new_payment)
+                self.add_payment(new_payment)
+
+                # deduction
+                if web_payment_type == "Period":
+                    # return Html(P("Period"))
+                    # new_payment.create_period(self.get_all_price(booking_id), web_period)
+                    pass
+                if web_payment_type == "One Time":
+                    deduction_status = process_payment_method.deduction(
+                        process_booking.get_payment.get_total
+                    )
+                    if deduction_status == "Not enough balance":
+                        return Html(P("Not enough balance"))
             else:
-                return self.get_html_payment_didnt_match(web_payment_expired_date, web_payment_vcc)
+                return self.get_html_payment_didnt_match(
+                    web_payment_expired_date, web_payment_vcc
+                )
 
             # update accommodation
             booked_date = process_booking.get_booked_date
@@ -451,23 +522,32 @@ class ControlSystem:
             if payment_method.get_bank_id == payment_method_id:
                 return payment_method
 
-    def search_payment_method_by_user_id(self, user_id):
+    def search_payment_method_by_user_id(self, user_id: int):
         result_list = []
         for payment_method in self.__payment_method_list:
-            if int(payment_method.get_owner.get_user_id) if payment_method.get_owner else None == int(user_id):
-                result_list.append(payment_method)
+            if payment_method.get_owner != None:
+                if payment_method.get_owner.get_user_id == int(user_id):
+                    result_list.append(payment_method)
 
         return result_list
 
-    def get_html_payment_didnt_match(self, web_payment_expired_date, web_payment_vcc_number):
+    def get_html_payment_didnt_match(
+        self, web_payment_expired_date, web_payment_vcc_number
+    ):
         return Html(
             Div(
-                P("Payment Expired Date and VCC Number didn't match",
-                  style="font-weight: 600; font-size: 18px; margin-bottom: 8px;"),
-                P(f'Expired Date: {web_payment_expired_date}',
-                  style="font-size: 16px; color: #484848; margin: 4px 0;"),
-                P(f'VCC Number: {web_payment_vcc_number}',
-                  style="font-size: 16px; color: #484848;"),
+                P(
+                    "Payment Expired Date and VCC Number didn't match",
+                    style="font-weight: 600; font-size: 18px; margin-bottom: 8px;",
+                ),
+                P(
+                    f"Expired Date: {web_payment_expired_date}",
+                    style="font-size: 16px; color: #484848; margin: 4px 0;",
+                ),
+                P(
+                    f"VCC Number: {web_payment_vcc_number}",
+                    style="font-size: 16px; color: #484848;",
+                ),
                 style="""background: white;
                         padding: 20px;
                         border-radius: 12px;
@@ -475,17 +555,21 @@ class ControlSystem:
                         border: 1px solid #EBEBEB;
                         color: #FF5A5F;
                         font-family: 'Circular', -apple-system, 'Helvetica Neue', sans-serif;
-                        max-width: 400px;"""
+                        max-width: 400px;""",
             )
         )
 
     def get_html_payment_not_found(self, web_paymenth_method):
         return Html(
             Div(
-                P("Payment Method Not Found",
-                  style="font-weight: 600; font-size: 18px; margin-bottom: 8px;"),
-                P(f'Payment ID: {web_paymenth_method}',
-                  style="font-size: 16px; color: #484848;"),
+                P(
+                    "Payment Method Not Found",
+                    style="font-weight: 600; font-size: 18px; margin-bottom: 8px;",
+                ),
+                P(
+                    f"Payment ID: {web_paymenth_method}",
+                    style="font-size: 16px; color: #484848;",
+                ),
                 style="""background: white;
                         padding: 20px;
                         border-radius: 12px;
@@ -493,15 +577,14 @@ class ControlSystem:
                         border: 1px solid #EBEBEB;
                         color: #FF5A5F;
                         font-family: 'Circular', -apple-system, 'Helvetica Neue', sans-serif;
-                        max-width: 400px;"""
+                        max-width: 400px;""",
             )
         )
 
     def get_html_purchase_sueccess(self):
         return Html(
             Div(
-                P("Purchase Successful",
-                  style="font-weight: 600; font-size: 18px;"),
+                P("Purchase Successful", style="font-weight: 600; font-size: 18px;"),
                 style="""background: white;
                         padding: 20px;
                         border-radius: 12px;
@@ -509,15 +592,17 @@ class ControlSystem:
                         border: 1px solid #EBEBEB;
                         color: #008489;
                         font-family: 'Circular', -apple-system, 'Helvetica Neue', sans-serif;
-                        max-width: 400px;"""
+                        max-width: 400px;""",
             )
         )
 
     def get_html_accommodation_not_available(self):
         return Html(
             Div(
-                P("Accommodation not available for these dates",
-                  style="font-weight: 600; font-size: 18px;"),
+                P(
+                    "Accommodation not available for these dates",
+                    style="font-weight: 600; font-size: 18px;",
+                ),
                 style="""background: white;
                         padding: 20px;
                         border-radius: 12px;
@@ -525,7 +610,7 @@ class ControlSystem:
                         border: 1px solid #EBEBEB;
                         color: #FF5A5F;
                         font-family: 'Circular', -apple-system, 'Helvetica Neue', sans-serif;
-                        max-width: 400px;"""
+                        max-width: 400px;""",
             )
         )
 
@@ -540,40 +625,64 @@ class ControlSystem:
                 Form(
                     Div(
                         H3("Your Trip"),
-                        Div(P(f"Accommodation: {self.search_booking_by_id(booking_id).get_accommodation.get_acc_name}"),
-                            style="margin-bottom: 15px;"),
-                        Div(P(f"Accommodation Booked Date: {self.search_booking_by_id(booking_id).get_accommodation.get_booked_date_string}"),
-                            style="margin-bottom: 15px;"),
-                        Div(P(f"Check-in: {result_booking.get_booked_date.get_checkindate}"),
-                            style="margin-bottom: 15px;"),
-                        Div(P(f"Check-out: {result_booking.get_booked_date.get_checkoutdate}"),
-                            style="margin-bottom: 15px;"),
-                        Div(P(f"Guests: {result_booking.get_guess_amount}"),
-                            style="margin-bottom: 15px;"),
-                        Div(P(f"Price: {result_booking.cal_price()}"),
-                            style="margin-bottom: 15px;"),
-                        style="border: 1px solid #ddd; padding: 20px; border-radius: 5px;"
+                        Div(
+                            P(
+                                f"Accommodation: {self.search_booking_by_id(booking_id).get_accommodation.get_acc_name}"
+                            ),
+                            style="margin-bottom: 15px;",
+                        ),
+                        Div(
+                            P(
+                                f"Accommodation Booked Date: {self.search_booking_by_id(booking_id).get_accommodation.get_booked_date_string}"
+                            ),
+                            style="margin-bottom: 15px;",
+                        ),
+                        Div(
+                            P(
+                                f"Check-in: {result_booking.get_booked_date.get_checkindate}"
+                            ),
+                            style="margin-bottom: 15px;",
+                        ),
+                        Div(
+                            P(
+                                f"Check-out: {result_booking.get_booked_date.get_checkoutdate}"
+                            ),
+                            style="margin-bottom: 15px;",
+                        ),
+                        Div(
+                            P(f"Guests: {result_booking.get_guess_amount}"),
+                            style="margin-bottom: 15px;",
+                        ),
+                        Div(
+                            P(f"Price: {result_booking.cal_price()}"),
+                            style="margin-bottom: 15px;",
+                        ),
+                        style="border: 1px solid #ddd; padding: 20px; border-radius: 5px;",
                     ),
                     Div(
                         H3("Your Payment Details"),
                         Label("Choose Your Card"),
                         Select(
-                            *[Option(f"Bank ID: {method.get_bank_id} (Balance: {method.get_balance})",
-                                     value=method.get_bank_id)
-                              for method in result_payment_method],
+                            *[
+                                Option(
+                                    f"Bank ID: {method.get_bank_id} (Balance: {method.get_balance})",
+                                    value=method.get_bank_id,
+                                )
+                                for method in result_payment_method
+                            ],
                             name="payment_method_id",
-                            required=True
+                            required=True,
                         ),
                         Div(
                             Label("Expired Date"),
                             Input(type="date", name="expired_date",
                                   required=True),
-                            style="margin-bottom: 15px;"
+                            style="margin-bottom: 15px;",
                         ),
                         Div(
                             Label("VCC Number"),
                             Input(type="text", name="vcc_number", required=True),
-                            style="margin-bottom: 15px;"
+                            style="margin-bottom: 15px;",
                         ),
                         Div(
                             Label("Payment Type"),
@@ -582,33 +691,42 @@ class ControlSystem:
                                 Option("One Time", value="OneTime"),
                                 Option("Period", value="Period"),
                                 name="payment_type",
-                                required=True
+                                required=True,
                             ),
                             Div(
                                 Label("Period"),
-                                Input(type="number", name="period",
-                                      required=False, value="2"),
+                                Input(
+                                    type="number",
+                                    name="period",
+                                    required=False,
+                                    value="2",
+                                ),
                                 id="periodInput",
-                                style="margin-bottom: 15px; display: none;"
+                                style="margin-bottom: 15px; display: none;",
                             ),
                         ),
                         Div(
                             Label("Message to Host"),
-                            Textarea(name="message",
-                                     rows="4",
-                                     placeholder="Tell the host about your trip..."),
-                            style="margin-bottom: 15px;"
+                            Textarea(
+                                name="message",
+                                rows="4",
+                                placeholder="Tell the host about your trip...",
+                            ),
+                            style="margin-bottom: 15px;",
                         ),
-                        style="border: 1px solid #ddd; padding: 20px; border-radius: 5px; margin-top: 20px; margin-bottom: 20px;"
+                        style="border: 1px solid #ddd; padding: 20px; border-radius: 5px; margin-top: 20px; margin-bottom: 20px;",
                     ),
-                    Button("Request to Book",
-                           type="submit",
-                           style="background-color: #FF5A5F; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;"),
+                    Button(
+                        "Request to Book",
+                        type="submit",
+                        style="background-color: #FF5A5F; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;",
+                    ),
                     action=f"/process_payment/booking_id={result_booking.get_booking_id}",
                     method="post",
-                    onsubmit="return validateForm()"
+                    onsubmit="return validateForm()",
                 ),
-                Script("""
+                Script(
+                    """
                     function togglePeriodInput() {
                         var paymentType = document.querySelector('select[name="payment_type"]').value;
                         var periodInput = document.getElementById('periodInput');
@@ -626,21 +744,23 @@ class ControlSystem:
                         }
                         return true;
                     }
-                """),
+                """
+                ),
                 Form(
                     Input(type="hidden", name="user_id", value=user_id),
                     Button("Didn't have a card?", type="submit"),
                     action="/payment/add",
-                    method="POST"
+                    method="POST",
                 ),
-                style="max-width: 500px; margin: 0 auto; padding: 20px;"
-            )
+                style="max-width: 500px; margin: 0 auto; padding: 20px;",
+            ),
         )
 
     def get_html_index(self, user_id=None):
         filtered_accommodation_list = []
         for accom in self.get_accommodation_list:
             from .Accommodation import Room
+
             if not isinstance(accom, Room):
                 filtered_accommodation_list.append(accom)
 
@@ -693,72 +813,93 @@ class ControlSystem:
             .search-results { padding: 20px; }
             .no-results { color: #555; font-style: italic; }
 """
-        return (
-            Html(
-                Head(
-                    Meta(charset="UTF-8"),
-                    Meta(name="viewport",
-                         content="width=device-width, initial-scale=1.0"),
-                    Title("Airbnb Menu Layout"),
-                    Style(css)
-                ),
-                Body(
-                    Header(
-                        A("Airbnb", cls="logo", href="/"),
-                        Nav(
-                            Form(
-                                Button("Stays", type="submit"),
-                                # Move action to Form, use f-string
-                                action=f"/booking_history/{user_id}",
-                                method="get",
-                                cls="nav-form"  # Optional: add a class for styling
-                            ),
-                            A("Experiences", href="#"),
-                            A("Online Experiences", href="#"),
-                            cls="nav-menu"
+        return Html(
+            Head(
+                Meta(charset="UTF-8"),
+                Meta(name="viewport", content="width=device-width, initial-scale=1.0"),
+                Title("Airbnb Menu Layout"),
+                Style(css),
+            ),
+            Body(
+                Header(
+                    A("Airbnb", cls="logo", href="/"),
+                    Nav(
+                        Form(
+                            Button("Stays", type="submit"),
+                            # Move action to Form, use f-string
+                            action=f"/booking_history/{user_id}",
+                            method="get",
+                            cls="nav-form",  # Optional: add a class for styling
                         ),
-                        Div(
-                            Form(
-                                Input(type="text", name="search_query",
-                                      placeholder="Where are you going?", required=True),
-                                Input(type="date", name="check_in",
-                                      style="margin-right: 10px;", required=True),
-                                Input(type="date", name="check_out",
-                                      style="margin-right: 10px;", required=True),
-                                Button("Search", type="submit"),
-                                action="/search",
-                                method="post",
-                                cls="search-bar"
-                            ),
-                            A("Become a Host", href="#"),
-                            A("Help", href="#"),
-                            Div(cls="user-icon"),
-                            cls="user-menu"
-                        ),
-                        cls="header"
+                        A("Experiences", href="#"),
+                        A("Online Experiences", href="#"),
+                        cls="nav-menu",
                     ),
                     Div(
-                        *[A(Div(
-                            Img(src=accom.get_accom_pics[0]),
-                            H3(accom.get_acc_name),
-                            P(f"Address: {accom.get_address}"),
-                            P(f"ID: {accom.get_id}"),
-                            P(f"Price: {accom.get_price}/night"),
-                            P(f"Host: {accom.get_host.get_user_name if accom.get_host else 'No host assigned'}"),
-                            cls="card"
-                        ), style="text-decoration: none; color: inherit;", href=f"/accommodation/{accom.get_id}") for accom in filtered_accommodation_list],
-                        cls="container"
+                        Form(
+                            Input(
+                                type="text",
+                                name="search_query",
+                                placeholder="Where are you going?",
+                                required=True,
+                            ),
+                            Input(
+                                type="date",
+                                name="check_in",
+                                style="margin-right: 10px;",
+                                required=True,
+                            ),
+                            Input(
+                                type="date",
+                                name="check_out",
+                                style="margin-right: 10px;",
+                                required=True,
+                            ),
+                            Button("Search", type="submit"),
+                            action="/search",
+                            method="post",
+                            cls="search-bar",
+                        ),
+                        A("Become a Host", href="#"),
+                        A("Help", href="#"),
+                        Div(cls="user-icon"),
+                        cls="user-menu",
                     ),
-                    P(f"user id : {user_id}"),
-                )
-            )
+                    cls="header",
+                ),
+                Div(
+                    *[
+                        A(
+                            Div(
+                                Img(src=accom.get_accom_pics[0]),
+                                H3(accom.get_acc_name),
+                                P(f"Address: {accom.get_address}"),
+                                P(f"ID: {accom.get_id}"),
+                                P(f"Price: {accom.get_price}/night"),
+                                P(
+                                    f"Host: {accom.get_host.get_user_name if accom.get_host else 'No host assigned'}"
+                                ),
+                                cls="card",
+                            ),
+                            style="text-decoration: none; color: inherit;",
+                            href=f"/accommodation/{accom.get_id}",
+                        )
+                        for accom in filtered_accommodation_list
+                    ],
+                    cls="container",
+                ),
+                P(f"user id : {user_id}"),
+            ),
         )
 
-    def get_html_search_query(self, query: str, check_in: str, check_out: str, user_id: str):
+    def get_html_search_query(
+        self, query: str, check_in: str, check_out: str, user_id: str
+    ):
         results = self.search_accommodations(query)
         filtered_accommodation_list = []
         for accom in results:
             from .Accommodation import Room
+
             if not isinstance(accom, Room):
                 filtered_accommodation_list.append(accom)
         css = """
@@ -813,15 +954,20 @@ class ControlSystem:
         # Generate search results content
         if filtered_accommodation_list:
             results_content = [
-                A(Div(
-                    Img(src=accom.get_accom_pics[0]),
-                    H3(accom.get_acc_name),
-                    P(f"Address: {accom.get_address}"),
-                    P(f"ID: {accom.get_id}"),
-                    P(f"Price: {accom.cal_price(check_in, check_out)}/night"),
-                    P(f"Host: {accom.get_host.get_user_name if accom.get_host else 'No host assigned'}"),
-                    cls="card"
-                ), style="text-decoration: none; color: inherit;", href=f"/accommodation/{accom.get_id}"
+                A(
+                    Div(
+                        Img(src=accom.get_accom_pics[0]),
+                        H3(accom.get_acc_name),
+                        P(f"Address: {accom.get_address}"),
+                        P(f"ID: {accom.get_id}"),
+                        P(f"Price: {accom.cal_price(check_in, check_out)}/night"),
+                        P(
+                            f"Host: {accom.get_host.get_user_name if accom.get_host else 'No host assigned'}"
+                        ),
+                        cls="card",
+                    ),
+                    style="text-decoration: none; color: inherit;",
+                    href=f"/accommodation/{accom.get_id}",
                 )
                 for accom in filtered_accommodation_list
             ]
@@ -829,51 +975,60 @@ class ControlSystem:
             results_content = [
                 P("No results found for your search.", cls="no-results")]
 
-        return (
-            Html(
-                Head(
-                    Meta(charset="UTF-8"),
-                    Meta(name="viewport",
-                         content="width=device-width, initial-scale=1.0"),
-                    Title(f"Search Results for '{query}' - Airbnb"),
-                    Style(css)
-                ),
-                Body(
-                    Header(
-                        A("Airbnb", cls="logo", href="/"),
-                        Nav(
-                            A("Stays", href="#"),
-                            A("Experiences", href="#"),
-                            A("Online Experiences", href="#"),
-                            cls="nav-menu",
-                        ),
-                        Div(
-                            Form(
-                                Input(type="text", name="search_query",
-                                      placeholder="Where are you going?", required=True),
-                                Input(type="date", name="check_in",
-                                      style="margin-right: 10px;", required=True),
-                                Input(type="date", name="check_out",
-                                      style="margin-right: 10px;", required=True),
-                                Button("Search", type="submit"),
-                                action="/search",
-                                method="post",
-                                cls="search-bar"
-                            ),
-                            A("Become a Host", href="#"),
-                            A("Help", href="#"),
-                            Div(cls="user-icon"),
-                            cls="user-menu"
-                        ),
-                        cls="header"
+        return Html(
+            Head(
+                Meta(charset="UTF-8"),
+                Meta(name="viewport", content="width=device-width, initial-scale=1.0"),
+                Title(f"Search Results for '{query}' - Airbnb"),
+                Style(css),
+            ),
+            Body(
+                Header(
+                    A("Airbnb", cls="logo", href="/"),
+                    Nav(
+                        A("Stays", href="#"),
+                        A("Experiences", href="#"),
+                        A("Online Experiences", href="#"),
+                        cls="nav-menu",
                     ),
                     Div(
-                        H2(f"Search Results for '{query}', from {check_in} to {check_out}"),
-                        Div(*results_content, cls="container"),
-                        cls="search-results"
-                    )
-                )
-            )
+                        Form(
+                            Input(
+                                type="text",
+                                name="search_query",
+                                placeholder="Where are you going?",
+                                required=True,
+                            ),
+                            Input(
+                                type="date",
+                                name="check_in",
+                                style="margin-right: 10px;",
+                                required=True,
+                            ),
+                            Input(
+                                type="date",
+                                name="check_out",
+                                style="margin-right: 10px;",
+                                required=True,
+                            ),
+                            Button("Search", type="submit"),
+                            action="/search",
+                            method="post",
+                            cls="search-bar",
+                        ),
+                        A("Become a Host", href="#"),
+                        A("Help", href="#"),
+                        Div(cls="user-icon"),
+                        cls="user-menu",
+                    ),
+                    cls="header",
+                ),
+                Div(
+                    H2(f"Search Results for '{query}', from {check_in} to {check_out}"),
+                    Div(*results_content, cls="container"),
+                    cls="search-results",
+                ),
+            ),
         )
 
     def get_booking_history(self, user_id):
@@ -888,7 +1043,7 @@ class ControlSystem:
             book.append(booking.get_booking_status)
             book.append(booking.get_date)
             book.append(booking.get_accommodation.get_acc_name)
-            print(f'///////////////////////////////:{booking.get_booked_date}')
+            print(f"///////////////////////////////:{booking.get_booked_date}")
             book.append(booking.get_booked_date.get_checkindate)
             book.append(booking.get_booked_date.get_checkoutdate)
             book.append(booking.get_amount)
@@ -948,19 +1103,25 @@ class ControlSystem:
     def payback(self, system_pay_med, user_pay_med, amount, tranfer_type="default"):
 
         print(
-            f"system_balance before {system_pay_med.get_balance}, user_balance before {user_pay_med.get_balance}")
+            f"system_balance before {system_pay_med.get_balance}, user_balance before {user_pay_med.get_balance}"
+        )
 
         system_pay_med.update_balance(-amount)
         user_pay_med.update_balance(+amount)
 
         print(
-            f"system_balance after {system_pay_med.get_balance}, user_balance after {user_pay_med.get_balance}")
+            f"system_balance after {system_pay_med.get_balance}, user_balance after {user_pay_med.get_balance}"
+        )
         return "Success"
 
     def get_booking_by_id(self, booking_id):
         for booking in self.get_booking_list:
             if booking.get_booking_id == booking_id:
                 return booking
+
+    @property
+    def get_payment_list(self):
+        return self.__payment_list
 
     def get_html_monitor_airbnb(self):
         # Airbnb-inspired CSS styling
@@ -1033,17 +1194,19 @@ class ControlSystem:
 
         # Get the data
         members = self.get_member_list
-        payments = self.get_payment_method_list
+        payment_method_list = self.get_payment_method_list
         accommodations = self.get_accommodation_list
         hosts = self.get_host_list
         bookings = self.get_booking_list
+        payments = self.get_payment_list
 
         # Build the HTML structure
         return Html(
             Style(css),
             Div(
-                # 'klass' is used instead of 'class' to avoid Python keyword conflict
-                H3("Monitor", klass="monitor-title"),
+                H3(
+                    "Monitor", klass="monitor-title"
+                ),  # 'klass' is used instead of 'class' to avoid Python keyword conflict
                 Table(
                     Thead(
                         Tr(
@@ -1051,79 +1214,129 @@ class ControlSystem:
                             Th("Payment Methods"),
                             Th("Accommodations"),
                             Th("Hosts"),
-                            Th("Bookings")
+                            Th("Bookings"),
+                            Th("Payments"),
                         )
                     ),
                     Tbody(
                         Tr(
                             Td(
-                                Ul(*[Li(str(member))
-                                     for member in members], klass="item-list")
+                                Ul(
+                                    *[Li(str(member)) for member in members],
+                                    klass="item-list",
+                                )
                             ),
                             Td(
-                                Ul(*[Li(str(payment))
-                                     for payment in payments], klass="item-list")
+                                Ul(
+                                    *[
+                                        Li(str(paymentmethod))
+                                        for paymentmethod in payment_method_list
+                                    ],
+                                    klass="item-list",
+                                )
                             ),
                             Td(
-                                Ul(*[Li(str(acc))
-                                     for acc in accommodations], klass="item-list")
+                                Ul(
+                                    *[Li(str(acc)) for acc in accommodations],
+                                    klass="item-list",
+                                )
                             ),
                             Td(
-                                Ul(*[Li(str(host))
-                                     for host in hosts], klass="item-list")
+                                Ul(
+                                    *[Li(str(host)) for host in hosts],
+                                    klass="item-list",
+                                )
                             ),
                             Td(
-                                Ul(*[Li(str(booking))
-                                     for booking in bookings], klass="item-list")
-                            )
+                                Ul(
+                                    *[Li(str(booking))
+                                      for booking in bookings],
+                                    klass="item-list",
+                                )
+                            ),
+                            Td(
+                                Ul(
+                                    *[Li(str(payment))
+                                      for payment in payments],
+                                    klass="item-list",
+                                )
+                            ),
                         )
                     ),
-                    klass="monitor-table"
+                    klass="monitor-table",
                 ),
-                P(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-                  klass="timestamp"),
+                P(
+                    f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                    klass="timestamp",
+                ),
                 klass="monitor-container",
-            )
+            ),
         )
 
     def add_member_and_payment_method(self):
         from .User import Member
         from .Payment import PaymentMethod
-        reset = Member('', '', '', '', '')
+
+        reset = Member("", "", "", "", "")
         reset.reset_increament()
-        new_member = Member(name="test", email="test",
-                            password="1234", phone_num="test", age="19")
+        new_member = Member(
+            name="test", email="test", password="1234", phone_num="test", age="19"
+        )
         self.add_member(new_member)
 
         new_pay_med = PaymentMethod(
-            bank_id="1234", user=new_member, balance=100000, expired_date=datetime.now(), vcc=555)
+            bank_id="1234",
+            user=new_member,
+            balance=100000,
+            expired_date=datetime.now(),
+            vcc=555,
+        )
         self.add_payment_method(new_pay_med)
         self.search_member_by_id(
             new_member.get_user_id).add_payment_method(new_pay_med)
-        balance = self.search_member_by_id(
-            new_member.get_user_id).get_payment_method_list[0].get_balance
-        print(f'name : {new_member.get_user_name}, balance : {balance}')
+        balance = (
+            self.search_member_by_id(new_member.get_user_id)
+            .get_payment_method_list[0]
+            .get_balance
+        )
+        print(f"name : {new_member.get_user_name}, balance : {balance}")
 
         new_pay_med_2 = PaymentMethod(
-            bank_id="4321", user=new_member, balance=99999, expired_date=datetime.now(), vcc=666)
+            bank_id="4321",
+            user=new_member,
+            balance=99999,
+            expired_date=datetime.now(),
+            vcc=666,
+        )
         self.add_payment_method(new_pay_med_2)
-        self.search_member_by_id(
-            new_member.get_user_id).add_payment_method(new_pay_med_2)
-        balance = self.search_member_by_id(
-            new_member.get_user_id).get_payment_method_list[1].get_balance
-        print(f'name : {new_member.get_user_name}, balance : {balance}')
+        self.search_member_by_id(new_member.get_user_id).add_payment_method(
+            new_pay_med_2
+        )
+        balance = (
+            self.search_member_by_id(new_member.get_user_id)
+            .get_payment_method_list[1]
+            .get_balance
+        )
+        print(f"name : {new_member.get_user_name}, balance : {balance}")
 
         new_pay_med_3 = PaymentMethod(
-            bank_id="4399", user=None, balance=50, expired_date=datetime.now(), vcc=888)
+            bank_id="4399", user=None, balance=50, expired_date=datetime.now(), vcc=888
+        )
         self.add_payment_method(new_pay_med_3)
 
     def add_accommodation_test(self):
         from .Accommodation import Accommodation, House, Hotel, Room
         from .User import Host
+
         reset = Accommodation(None, None, None, None)
         reset.reset_increament()
-        new_house = House("test_house", "location", "description", 6969,
-                          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJxo2NFiYcR35GzCk5T3nxA7rGlSsXvIfJwg&s")
+        new_house = House(
+            "test_house",
+            "location",
+            "description",
+            6969,
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJxo2NFiYcR35GzCk5T3nxA7rGlSsXvIfJwg&s",
+        )
         accom_pics = [
             "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg",
             "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4wLkW7-Z5PXiWG6VF7BjPpGTjmVIZwZHo3Zb5vJf8nppOzQhjfRdx2GTAfr6JaO1uHeA&usqp=CAU",
@@ -1135,86 +1348,88 @@ class ControlSystem:
             new_house.add_accom_pics(pic)
         self.add_accommodation(new_house)
 
-        new_host = Host(name="Tro", email="saygex1@gmail.com",
-                        password=12345, phone_num=1234567890, age=96)
+        new_host = Host(
+            name="Tro",
+            email="saygex1@gmail.com",
+            password="12345",
+            phone_num=1234567890,
+            age=96,
+        )
         new_house.add_host(new_host)
         self.add_host(new_host)
         self.search_host_by_id(
             new_host.get_user_id).add_accommodation(new_house)
         print(
-            f'Accommodation : {new_house.get_acc_name},ID : {new_house.get_id}, Host : {new_host.get_user_name}')
+            f"Accommodation : {new_house.get_acc_name},ID : {new_house.get_id}, Host : {new_host.get_user_name}"
+        )
 
-        new_hotel = Hotel("test_hotel", "location_hotel", "description_hotel")
-        for pic in accom_pics:
-            new_hotel.add_accom_pics(pic)
-        self.add_accommodation(new_hotel)
-        new_hotel.add_host(new_host)
-        new_room = Room(room_id="1", room_floor=1, price=1000,
-                        hotel_address="location_hotel", hotel_name="test_hotel")
-        self.add_accommodation(new_room)
-        self.search_accom_by_id(new_hotel.get_id).add_room(new_room)
-        self.search_host_by_id(
-            new_host.get_user_id).add_accommodation(new_hotel)
-        self.search_host_by_id(
-            new_host.get_user_id).add_accommodation(new_room)
-        print(
-            f'Accommodation : {new_hotel.get_acc_name},ID : {new_hotel.get_id}, Host : {new_host.get_user_name}')
-        print(
-            f'Accommodation : {new_room.get_acc_name},ID : {new_room.get_id}, Host : {new_host.get_user_name}')
+        # new_hotel = Hotel("test_hotel", "location_hotel", "description_hotel")
+        # for pic in accom_pics:
+        #     new_hotel.add_accom_pics(pic)
+        # self.add_accommodation(new_hotel)
+        # new_hotel.add_host(new_host)
+        # new_room = Room(room_id="1", room_floor=1, price=1000, hotel_address="location_hotel", hotel_name="test_hotel")
+        # self.add_accommodation(new_room)
+        # self.search_accom_by_id(new_hotel.get_id).add_room(new_room)
+        # self.search_host_by_id(new_host.get_user_id).add_accommodation(new_hotel)
+        # self.search_host_by_id(new_host.get_user_id).add_accommodation(new_room)
+        # print(f'Accommodation : {new_hotel.get_acc_name},ID : {new_hotel.get_id}, Host : {new_host.get_user_name}')
+        # print(f'Accommodation : {new_room.get_acc_name},ID : {new_room.get_id}, Host : {new_host.get_user_name}')
 
-    def make_booking(self):
+    def make_booking_and_payment(self):
         from .Booking import Booking, BookedDate
-        reset = Booking(None, None, None, None)
-        reset.reset_increment()
 
-        self.create_booking(
-            accom=self.get_accommodation_list[0],
-            date=datetime.now(),
-            guess=2,
-            member=self.get_member_list[0]
+        reset = Booking(None, None, None).reset_increment()
+
+        new_booking = self.create_booking(
+            "1",
+            check_in="2025-03-11",
+            check_out="2025-03-12",
+            accom_id=self.get_accommodation_list[0].get_id,
+            guests=2,
         )
-        self.get_booking_by_id(1).add_booked_date(BookedDate(
-            datetime.now(), datetime.now() + timedelta(days=5)))
-
-        self.create_booking(
-            accom=self.get_accommodation_list[2],
-            date=datetime.now(),
-            guess=5,
-            member=self.get_member_list[0]
+        reset_increment = new_booking.create_payment(
+            None, None, None
+        ).reset_increament()
+        self.create_payment(
+            self.get_all_price(new_booking.get_booking_id, True),
+            1,
+            self.get_payment_method_list[0],
+            new_booking.get_booking_id,
         )
-        self.get_booking_by_id(2).add_booked_date(BookedDate(
-            datetime.now() + timedelta(days=6), datetime.now() + timedelta(days=10)))
-
-        self.create_booking(
-            accom=self.get_accommodation_list[2],
-            # date=BookedDate(datetime.now() + timedelta(days=10), datetime.now() + timedelta(days=20)),
-            date=datetime.now(),
-
-            guess=10,
-            member=self.get_member_list[0]
-        )
-        self.get_booking_by_id(3).add_booked_date(BookedDate(
-            datetime.now() + timedelta(days=6), datetime.now() + timedelta(days=20)))
+        return new_booking
 
     def add_accommodation_booked_date(self):
         from .Booking import BookedDate
+
         new_booked_date = BookedDate(
             datetime.now(), datetime.now() + timedelta(days=2))
         self.get_accommodation_list[0].add_booked_date(new_booked_date)
 
         new_booked_date = BookedDate(
-            datetime.now() + timedelta(days=4), datetime.now() + timedelta(days=6))
+            datetime.now() + timedelta(days=4), datetime.now() + timedelta(days=6)
+        )
         self.get_accommodation_list[0].add_booked_date(new_booked_date)
 
         new_booked_date = BookedDate(
-            datetime.now() + timedelta(days=8), datetime.now() + timedelta(days=12))
+            datetime.now() + timedelta(days=8), datetime.now() + timedelta(days=12)
+        )
         self.get_accommodation_list[0].add_booked_date(new_booked_date)
 
         print(
-            f'booked_date : {self.get_accommodation_list[0].get_booked_date_list}')
+            f"booked_date : {self.get_accommodation_list[0].get_booked_date_list}")
 
     def get_html_add_payment(self, user_id):
-        user_name = self.search_member_by_id(user_id).get_user_name
+        try:
+            user_name = self.search_member_by_id(int(user_id))
+            if user_name == None:
+                user_name = self.search_host_by_id(int(user_id)).get_user_name
+            else:
+                user_name = self.search_member_by_id(
+                    int(user_id)).get_user_name
+
+        except:
+            user_name = self.search_host_by_id(int(user_id)).get_user_name
         return Html(
             Title(f"Add Payment Method - {user_name}"),
             Div(
@@ -1223,58 +1438,66 @@ class ControlSystem:
                     Div(
                         Div(
                             Label(
-                                "Bank ID", style="font-weight: bold; margin-bottom: 5px; display: block;"),
+                                "Bank ID",
+                                style="font-weight: bold; margin-bottom: 5px; display: block;",
+                            ),
                             Input(
                                 type="text",
                                 name="bank_id",
                                 placeholder="Enter your Bank ID",
                                 required=True,
-                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;"
+                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;",
                             ),
-                            style="margin-bottom: 20px;"
+                            style="margin-bottom: 20px;",
                         ),
                         Div(
                             Label(
-                                "Expiration Date", style="font-weight: bold; margin-bottom: 5px; display: block;"),
+                                "Expiration Date",
+                                style="font-weight: bold; margin-bottom: 5px; display: block;",
+                            ),
                             Input(
                                 type="date",
                                 name="expired_date",
                                 required=True,
-                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;"
+                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;",
                             ),
-                            style="margin-bottom: 20px;"
+                            style="margin-bottom: 20px;",
                         ),
                         Div(
                             Label(
-                                "Security Code (VCC)", style="font-weight: bold; margin-bottom: 5px; display: block;"),
+                                "Security Code (VCC)",
+                                style="font-weight: bold; margin-bottom: 5px; display: block;",
+                            ),
                             Input(
                                 type="text",
                                 name="vcc_number",
                                 placeholder="Enter security code",
                                 required=True,
                                 maxlength="4",
-                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;"
+                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;",
                             ),
-                            style="margin-bottom: 20px;"
+                            style="margin-bottom: 20px;",
                         ),
-                        style="background: white; padding: 20px; border: 1px solid #e4e4e4; border-radius: 8px;"
+                        style="background: white; padding: 20px; border: 1px solid #e4e4e4; border-radius: 8px;",
                     ),
                     Button(
                         "Add Payment Method",
                         type="submit",
                         style="background-color: #FF5A5F; color: white; padding: 12px 24px; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px; transition: background-color 0.2s;"
-                        ":hover {background-color: #E0474C;}"
+                        ":hover {background-color: #E0474C;}",
                     ),
                     Input(type="hidden", name="user_id", value=user_id),
                     action="/payment/add/process",
                     method="post",
-                    style="max-width: 400px; margin: 20px auto;"
+                    style="max-width: 400px; margin: 20px auto;",
                 ),
-                style="font-family: 'Circular', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;"
-            )
+                style="font-family: 'Circular', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;",
+            ),
         )
 
-    def get_html_add_payment_process(self, web_user_id, web_bank_id, web_expired_date, web_vcc_number):
+    def get_html_add_payment_process(
+        self, web_user_id, web_bank_id, web_expired_date, web_vcc_number
+    ):
         # try:
         process_payment_method = self.search_payment_method_by_id(web_bank_id)
         if process_payment_method is None:
@@ -1283,21 +1506,30 @@ class ControlSystem:
             )
         process_member = self.search_member_by_id(web_user_id)
         if process_member is None:
+            process_member = self.search_host_by_id(web_user_id)
+        if process_member is None:
             return Html(
                 P(f"User : {web_user_id} not found"),
             )
-        # check vcc and expired
-        if web_expired_date == process_payment_method.get_expired_date_pretty and web_vcc_number == str(process_payment_method.get_vcc_number):
+        if (
+            web_expired_date == process_payment_method.get_expired_date_pretty
+            and web_vcc_number == str(process_payment_method.get_vcc_number)
+        ):  # check vcc and expired
             process_payment_method.set_owner(process_member)
             process_member.add_payment_method(process_payment_method)
             return Html(
-                P(f"Payment Method : {process_payment_method.get_bank_id} added successfully",
-                  style="font-weight: 600; font-size: 18px;"),
-                P(f"User : {process_member.get_user_name} added successfully",
-                  style="font-weight: 600; font-size: 18px;"),
+                P(
+                    f"Payment Method : {process_payment_method.get_bank_id} added successfully",
+                    style="font-weight: 600; font-size: 18px;",
+                ),
+                P(
+                    f"User : {process_member.get_user_name} added successfully",
+                    style="font-weight: 600; font-size: 18px;",
+                ),
             )
-        # except Exception as e:
-        #     return Html(P(f"Error: {str(e)}", style="font-weight: 600; font-size: 18px;"))
+
+    # except Exception as e:
+    #     return Html(P(f"Error: {str(e)}", style="font-weight: 600; font-size: 18px;"))
 
     def get_price_per_night(self, booking_id):
         try:
@@ -1313,7 +1545,7 @@ class ControlSystem:
             booking_item = self.search_booking_by_id(booking_id)
             s = booking_item.get_booked_date.get_checkindate
             e = booking_item.get_booked_date.get_checkoutdate
-            delta_date = (e-s).days
+            delta_date = (e - s).days
             return str(delta_date)
         except:
             return "Get Nights Wrong"
@@ -1373,10 +1605,9 @@ class ControlSystem:
         if not book_id:
             return Titled("ข้อผิดพลาด", P("ไม่พบหมายเลขการจอง กรุณาลองใหม่"))
         pay_div = None
-        if (pay_div != None):
+        if pay_div != None:
             pay_div = Div(
                 H3("Pay With"),
-
                 Form(  # start FORM
                     Label("Choose Payment:"),
                     Select(
@@ -1384,7 +1615,7 @@ class ControlSystem:
                         Option("Parts", value="parts"),
                         id="payment",
                         name="payment",
-                        onchange="toggleInstallments()"
+                        onchange="toggleInstallments()",
                     ),
                     Div(
                         Label("Choose Period:"),
@@ -1393,18 +1624,18 @@ class ControlSystem:
                             Option("4", value="4"),
                             Option("6", value="6"),
                             id="installments",
-                            name="period"
+                            name="period",
                         ),
                         id="installmentsDiv",
                         name="period_div",
-                        style="display: none;"
+                        style="display: none;",
                     ),
                     Label("Debit or Credit:"),
                     Select(
                         Option("Debit", value="debit"),
                         Option("Credit", value="credit"),
                         id="paymed",
-                        name="paymed"
+                        name="paymed",
                     ),
                     Label("Card Number:"),
                     Input(type="text", id="card_number", name="card_num",
@@ -1422,10 +1653,9 @@ class ControlSystem:
                           value=f"{book_id}"),
                     Button("Confirm and Pay", type="submit"),
                     method="post",
-                    action="/create_pay"
-
+                    action="/create_pay",
                 ),  # endform
-                style="width:50%"
+                style="width:50%",
             )
         return Div(
             {"data-theme": "light"},
@@ -1445,34 +1675,32 @@ class ControlSystem:
                     
                     border: none;
                     cursor: pointer;
-                    """),
-                    href="/"),
-
+                    """,
+                    ),
+                    href="/",
+                ),
                 style="""
             padding: 15px;
             height:80px;
             align-items: center;
-            """
+            """,
             ),  # head
-
             Hr(),
             # back button
             Div(
-
                 A(
-                    Button("<", style="""
+                    Button(
+                        "<",
+                        style="""
                         background-color:white;
                         color:black;
                         border: 2px solid black;
                         border-radius: 8px;
                         font-size:20px"""
-                           ),
+                    ),
                     href="/back"
                 ),
-                H1(
-                    "Confirm and pay", style=""" color:black;"""
-                ),
-
+                H1("Confirm and pay", style=""" color:black;"""),
                 style="""
             padding-left: 15px;
             width:400px;
@@ -1481,12 +1709,12 @@ class ControlSystem:
             display:flex;
             justify-content: space-between;
             
-            """
+            """,
             ),
             Hr(
                 style=""" padding: 10 px;
-            background-color: blue px;"""),
-
+            background-color: blue px;"""
+            ),
             # main block
             Div(
                 Div(  # left side
@@ -1510,7 +1738,7 @@ class ControlSystem:
                                 style="display:flex; justify-content: space-between; align-items: center;height:20px;"
                             )
                         ),
-                        style="width:400px"
+                        style="width:400px",
                     ),  # Pay and Post
                     self.get_dropdown_form(book_id),
                     Script("""
@@ -1523,19 +1751,20 @@ class ControlSystem:
                             installmentsDiv.style.display = "none";
                         }
                     }
-                """),
-                    style="width: 50%; background-color: white; padding: 20px;color:black;overflow-y: auto;"
-
+                """
+                           ),
+                    style="width: 50%; background-color: white; padding: 20px;color:black;overflow-y: auto;",
                 ),  # end post
-
                 # right
                 Div(
                     Div(
                         Div(
                             Div(
-                                Img(src=self.get_pic_from_book_id(book_id),
-                                    style="width:100%; height:auto; border-radius:8px;"),
-                                style="width:30%;"
+                                Img(
+                                    src=self.get_pic_from_book_id(book_id),
+                                    style="width:100%; height:auto; border-radius:8px;",
+                                ),
+                                style="width:30%;",
                             ),
                             Div(
                                 H4(self.get_accom_name(book_id),
@@ -1550,7 +1779,7 @@ class ControlSystem:
                         background-color: white; 
                         padding: 10px; 
                         border-radius:8px;
-                        width:500px"""
+                        width:500px""",
                         ),
                         Div(
                             Table(
@@ -1597,64 +1826,70 @@ class ControlSystem:
                 padding:50px;
                 border: 2px solid black;
                 border-radius: 8px;
-                padding-left:10px"""
-                    )),
-
-
-                style="display: flex; flex-direction: row; height: 100vh;padding-right: 15px;padding-left: 15px;"
-
+                padding-left:10px""",
+                    )
+                ),
+                style="display: flex; flex-direction: row; height: 100vh;padding-right: 15px;padding-left: 15px;",
             ),
             Hr(
                 style=""" padding: 10 px;
-            background-color: blue px;"""),
+            background-color: blue px;"""
+            ),
             style=""" padding: 0px;
         background-color : white;
         
-        """
-
+        """,
         )
 
     def get_html_edit_date_guest(self, book_id):
         return Div(
-            Div(H1("Edit Booking Date & Guests",
-                style="text-align: center; color: black; margin-bottom: 20px;")),
-            Div(Form(
-                Div(Label("Start Date:", style="color: black;"),
-                    Input(type="date", id="start", name="start"),
-                    style="padding-bottom: 10px; display: flex; flex-direction: column; align-items: center; margin-bottom: 15px;"
+            Div(
+                H1(
+                    "Edit Booking Date & Guests",
+                    style="text-align: center; color: black; margin-bottom: 20px;",
+                )
+            ),
+            Div(
+                Form(
+                    Div(
+                        Label("Start Date:", style="color: black;"),
+                        Input(type="date", id="start", name="start"),
+                        style="padding-bottom: 10px; display: flex; flex-direction: column; align-items: center; margin-bottom: 15px;",
                     ),
-                Div(Label("End Date:", style="color: black;"),
-                    Input(type="date", id="end", name="end"),
-                    style="padding-bottom: 10px; display: flex; flex-direction: column; align-items: center; margin-bottom: 15px;"
+                    Div(
+                        Label("End Date:", style="color: black;"),
+                        Input(type="date", id="end", name="end"),
+                        style="padding-bottom: 10px; display: flex; flex-direction: column; align-items: center; margin-bottom: 15px;",
                     ),
-                Div(Label("Guest Amount:", style="color: black;"),
-                    Input(type="number", id="guest_amount",
-                          name="guest_amount", min="1", max="10"),
-                    style="padding-bottom: 10px; display: flex; flex-direction: column; align-items: center; margin-bottom: 15px;"
-                    ),
-                Button("Confirm", type="submit",
-                       style="background-color: green; color: white; padding: 10px 20px; border: none; border-radius: 5px;"),
-                method="post",
-                action=f"/update_date_guest/{book_id}",
-                style="""
+                    Div(Label("Guest Amount:", style="color: black;"),
+                        Input(type="number", id="guest_amount",
+                              name="guest_amount", min="1", max="10"),
+                        style="padding-bottom: 10px; display: flex; flex-direction: column; align-items: center; margin-bottom: 15px;"
+                        ),
+                    Button("Confirm", type="submit",
+                           style="background-color: green; color: white; padding: 10px 20px; border: none; border-radius: 5px;"),
+                    method="post",
+                    action=f"/update_date_guest/{book_id}",
+                    style="""
                 display: flex; flex-direction: column; align-items: center; 
                 background-color: white; padding: 20px; width: 100%; 
                 margin: auto; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-                """
-            )),
+                """,
+                )
+            ),
             style="""display: flex;
             flex-direction: column;
             justify-content: center; 
             align-items: center;
             height: 100vh;
-            background-color: #f4f4f4;"""
+            background-color: #f4f4f4;""",
         )
 
     def update_date(self, booking_id, start, end):
         if not (isinstance(booking_id, str)):
             booking_id = str(booking_id)
         booking_item = self.search_booking_by_id(booking_id)
-        result = booking_item.update_date(start, end, True)
+        result = booking_item.update_date(start, end)
         return result
         pass
 
@@ -1669,36 +1904,56 @@ class ControlSystem:
     def get_html_booking_history(self, user_id):
         booking_list = self.get_booking_history(user_id)
         if booking_list == None:
-            return Container(H1("Can't Find Booking History"),
-                             Form(Button("Back to Home page", type="submit"),
-                                  method="get",
-                                  action=f"/"
-                                  )
-                             )
+            return Container(
+                H1("Can't Find Booking History"),
+                Form(
+                    Button("Back to Home page", type="submit"),
+                    method="get",
+                    action=f"/",
+                ),
+            )
         return Titled(
             "Booking History",
             Container(
-                Form(Button("Back to Home Page", type="submit"),
-                     method="get", action="/")
+                Form(
+                    Button("Back to Home Page", type="submit"), method="get", action="/"
+                )
             ),
             Table(
-                Thead(Tr(Th("ID"), Th("Status"), Th("Date"), Th("Accommodation name"), Th(
-                    "Check-In"), Th("Check-Out"), Th("Amount"), Th(""))),
-                Tbody(*[
+                Thead(
                     Tr(
-                        Td(p[0]), Td(p[1]), Td(p[2]), Td(
-                            p[3]), Td(p[4]), Td(p[5]), Td(p[6]),
-                        Td(
-                            Form(
-                                Button("Detail", type="submit"),
-                                method="get",
-                                action=f"/view_booking_detail/{user_id}/{p[0]}"
-                            )
-                        )
+                        Th("ID"),
+                        Th("Status"),
+                        Th("Date"),
+                        Th("Accommodation name"),
+                        Th("Check-In"),
+                        Th("Check-Out"),
+                        Th("Amount"),
+                        Th(""),
                     )
-                    for p in booking_list
-                ])
-            )
+                ),
+                Tbody(
+                    *[
+                        Tr(
+                            Td(p[0]),
+                            Td(p[1]),
+                            Td(p[2]),
+                            Td(p[3]),
+                            Td(p[4]),
+                            Td(p[5]),
+                            Td(p[6]),
+                            Td(
+                                Form(
+                                    Button("Detail", type="submit"),
+                                    method="get",
+                                    action=f"/view_booking_detail/{user_id}/{p[0]}",
+                                )
+                            ),
+                        )
+                        for p in booking_list
+                    ]
+                ),
+            ),
         )
 
     def get_html_view_booking_detail(self, user_id, booking_id):
@@ -1711,7 +1966,7 @@ class ControlSystem:
                 Hidden(name="_method", value="PUT"),
                 Button("Cancel Booking", type="submit"),
                 method="post",
-                action=f"/cancel_booking/{detail[0]}"
+                action=f"/cancel_booking/{detail[0]}",
             )
 
         ###########################################
@@ -1720,17 +1975,19 @@ class ControlSystem:
                 Button("Change detail", type="submit"),
                 method="get",
                 # ส่งไปหน้าดิวที่ใช้ในการอัปเดรต booking
-                action=f"/edit_date_guest/{booking_id}"
+                action=f"/edit_date_guest/{booking_id}",
             )
 
         #############################################
         if detail == None:
-            return Container(H1("Can't Find Booking"),
-                             Form(Button("Back to Booking History", type="submit"),
-                                  method="get",
-                                  action=f"/booking_history/{user_id}"
-                                  )
-                             )
+            return Container(
+                H1("Can't Find Booking"),
+                Form(
+                    Button("Back to Booking History", type="submit"),
+                    method="get",
+                    action=f"/booking_history/{user_id}",
+                ),
+            )
         else:
             return Titled(
                 f"Booking Detail for {detail[0]}",
@@ -1749,24 +2006,32 @@ class ControlSystem:
                     P(f"Phone Number: {detail[11]}"),
                     edit_detail,
                     cancel_button,
-                    Form(Button("Back to Booking History", type="submit"),
-                         method="get",
-                         action=f"/booking_history/{user_id}"
-                         )
-
-                )
+                    Form(
+                        Button("Back to Booking History", type="submit"),
+                        method="get",
+                        action=f"/booking_history/{user_id}",
+                    ),
+                ),
             )
 
-    def get_html_create_pay(self, payment, period, paymed, card_num, expiration_date, password, booking_id):
+    def get_html_create_pay(
+        self, payment, period, paymed, card_num, expiration_date, password, booking_id
+    ):
         if self.check_expiraion_date(expiration_date):
-            result = self.post_payment(payment, paymed, booking_id, card_num, password,
-                                       period, balance=1000.00)
+            result = self.post_payment(
+                payment, paymed, booking_id, card_num, password, period, balance=1000.00
+            )
         else:
-            return Div(H2("Can't Booking Your Card has Gone I'm sorry but you have to move on to a New Card",
-                          style="padding : 30px;color:black;"),
-                       A(Button("Go back", style="padding:30px"),
-                         href=f"/booking/{booking_id}"),
-                       style="""padding: 20px; 
+            return Div(
+                H2(
+                    "Can't Booking Your Card has Gone I'm sorry but you have to move on to a New Card",
+                    style="padding : 30px;color:black;",
+                ),
+                A(
+                    Button("Go back", style="padding:30px"),
+                    href=f"/booking/{booking_id}",
+                ),
+                style="""padding: 20px; 
                     text-align: center;
                     background-color: #f4f4f4;
                     height: 100vh;
@@ -1775,7 +2040,8 @@ class ControlSystem:
                     flex-direction: column;
                         display:flex;
                         align:center;
-                    """)
+                    """,
+            )
 
         return Div(
             H3(f"Payment Confirmation for Booking {booking_id}"),
@@ -1783,32 +2049,42 @@ class ControlSystem:
             P(f"Card Number: {card_num}"),
             P(f"Total Amount: {self.get_all_price(booking_id)}"),
             Button("Back to Home", action="/"),
-            style="padding: 20px;"
+            style="padding: 20px;",
         )
 
     def get_html_update_date_guest(self, start, end, guest_amount, book_id):
-        try:
-            date_result = self.update_date(book_id, start, end)
-            guest_result = self.update_guest(book_id, guest_amount)
-            amount = self.get_all_price(book_id, True)
-            self.get_booking_by_id(book_id).set_amount(amount)
-            return Redirect(f"/booking/{book_id}")  # ส่งผู้ใช้กลับไปยังหน้าจอง
-        except Exception as e:
-            return Html(e)
+        # try:
+        date_result = self.update_date(book_id, start, end)
+        guest_result = self.update_guest(book_id, guest_amount)
+        amount = self.get_all_price(book_id, True)
+        self.get_booking_by_id(int(book_id)).set_amount(amount)
+        return Redirect(f"/booking/{book_id}")  # ส่งผู้ใช้กลับไปยังหน้าจอง
+        # except Exception as e:
+        #     return Html(e)
         return Div(
-            H1(f"Booking updated successfully!",
-               style=""" text-align: center; background-color: #f4f4f4;color:black;"""
-               ),
-            H1(f"Booking updated date is {date_result}!", style=""" text-align: center; background-color: #f4f4f4;color:black;"""
-               ),
-            H1(f"Booking updated guest amount is {guest_result}!",
-               style=""" text-align: center; background-color: #f4f4f4;color:black;"""),
-            A(Button("Go back to Booking",
-                     style=""" text-align: center;
+            H1(
+                f"Booking updated successfully!",
+                style=""" text-align: center; background-color: #f4f4f4;color:black;""",
+            ),
+            H1(
+                f"Booking updated date is {date_result}!",
+                style=""" text-align: center; background-color: #f4f4f4;color:black;""",
+            ),
+            H1(
+                f"Booking updated guest amount is {guest_result}!",
+                style=""" text-align: center; background-color: #f4f4f4;color:black;""",
+            ),
+            A(
+                Button(
+                    "Go back to Booking",
+                    style=""" text-align: center;
                     background-color:#88E788;
-                    color:black;"""), href=f"/booking/{book_id}",
-              style=""" text-align: center; background-color: #f4f4f4;color:black;"""),
-            style="""padding: 20px; text-align: center; background-color: #f4f4f4;height: 100vh;"""
+                    color:black;""",
+                ),
+                href=f"/booking/{book_id}",
+                style=""" text-align: center; background-color: #f4f4f4;color:black;""",
+            ),
+            style="""padding: 20px; text-align: center; background-color: #f4f4f4;height: 100vh;""",
         )
 
     def get_html_room_detail(self, accom_id, user_id):
@@ -2474,299 +2750,294 @@ class ControlSystem:
             ),
         )
 
-    def get_html_hosting(self, user_id):
-        listmyaccom = self.search_host_by_id_get_accom(user_id)
-        print(listmyaccom)
-        listreview = self.search_host_by_id_get_review(user_id)
-        print(listreview)
-        return Html(
-            Head(
-                Title("Airbnb - Hosting"),
-                Style(
-                    """
-                @import url('https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@95.9,346&family=Roboto:ital,wght@0,100..900;1,100..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
-                body,html {
-                    font-family: 'Fredoka', sans-serif;
-                    margin: 0;
-                    padding: 0;
-                    overflow-x: hidden;
-                }
-                * {
-                    margin: 0;
-                    padding: 0;
-                }
+    # def get_html_hosting(self, user_id):
+    #     listmyaccom = self.search_host_by_id_get_accom(user_id)  # Host Not Found
+    #     print(f"-----55>>>>{listmyaccom}")
+    #     listreview = self.search_host_by_id_get_review(user_id)
+    #     print(f"Listreview : {listreview}")
+    #     return Html(
+    #         Head(
+    #             Title("Airbnb - Hosting"),
+    #             Style(
+    #                 """
+    #             @import url('https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@95.9,346&family=Roboto:ital,wght@0,100..900;1,100..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+    #             body,html {
+    #                 font-family: 'Fredoka', sans-serif;
+    #                 margin: 0;
+    #                 padding: 0;
+    #                 overflow-x: hidden;
+    #             }
+    #             * {
+    #                 margin: 0;
+    #                 padding: 0;
+    #             }
 
-                .header{
-                   background-color: none;
-                    width: 100%;
-                    
-                     /* Added padding for spacing */
-                    display: flex; /* Use flexbox for horizontal alignment */
-                    justify-content: center; /* Space out logo and switch button */
-                    align-items: center; /* Vertically center items */
-                  }
-                  .header-container {
-                    
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    width: 100%;
-                    padding: 10px 5%;
-                    height:60px;
-                    position: relative; /* Ensure it stays part of the document flow */
-                }
-                .logo-button{
-                    background: none;
-                    border: none;
-                    cursor: pointer;
-                    width: 50px;
-                    height: 50px;
-                  }
-                .right-button {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px; /* Space between Switch and Profile buttons */
-                }
-                .switch-button{
-                   background-color: white;
-                    transition: all 0.3s;
-                    font-family: 'Fredoka';
-                    font-size: 16px;
-                    border: none;
-                    border-radius: 50px;
-                    cursor: pointer;
-                    width: 150px;
-                    height: 38px;
-                    
-                  }
-                .switch-button:hover{
-                  background-color: #e7e7e7;
-                  }
-                .profile-button{
-                    
-                    
-                }
-                .profile-button-ui{
-                    width: 70px;
-                    height: 38px;
-                    border-radius: 50px;
-                    border-color: #e7e7e7;
-                    
-                    border-width:1px;
-                    transition: all 0.2s ease-in-out;
-                    font-size: 20px;
-                    font-family: Verdana, Geneva, Tahoma, sans-serif;
-                    font-weight: 600;
-                    display: flex;
-                    align-items: center;
-                    justify-content:center;
-                    background: white;
-                    color: #f5f5f5;
-                }
-                .profile-button-ui:hover{
-                    
-                    box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
-                    
-                }
-                
-                .gray-line{
-                  background-color: #ededed;
-                    height: 1px; /* Set the height of the gray line */
-                    width: 100%; /* Make the gray line span the full width */
-                    margin: 0;
-                    padding: 0;
-                  }
-                
-                .welcome-section{
-                    width:auto;
-                    display:flex;
-                    justify-content:center;
-                    align-items:center;
-                    flex-direction:column;
-                    padding:0px 80px;
-                }
-                .in-welcome-text{
-                    
-                    width:100%;
-                    display:flex;
-                    flex-direction:column;
-                    padding:20px 20px;
-                    
-                }
-                .welcome-text{
-                    padding:20px 0px;
-                    font-weight:bold;
-                    font-size:35px;
-                }
-                .your-reservation-text{
-                    font-weight: normal;
-                    padding:20px 0px;
-                    font-size:26px;
+    #             .header{
+    #                background-color: none;
+    #                 width: 100%;
 
-                }
-                .currently-hosting-container{
-                    width:auto;
-                    display:flex;
-                    justify-content:center;                   
-                    flex-direction:column;
-                    padding:0px 80px;
-                    gap:20px;
-                }
-                .currently-hosting-text{
-                    font-size:20px;
-                }
-                .currently-hosting-box{
-                    
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    flex-direction:column;
-                    border-style: solid;
-                    border-weight:50px;
-                    border-color:#e0e0e0;
-                    gap:10px;
-                    background-color:#f7f7f7;
-                    padding:10px;
-                    border-radius:20px;
-                    overflow-y: auto;
-                    
-                    
-                }
-                .card-hosting{
-                    width:90%;
-                    border-radius:20px;
-                    background-color:white;
-                    padding:20px;
-                    width:auto
-                    gap:10px;
+    #                  /* Added padding for spacing */
+    #                 display: flex; /* Use flexbox for horizontal alignment */
+    #                 justify-content: center; /* Space out logo and switch button */
+    #                 align-items: center; /* Vertically center items */
+    #               }
+    #               .header-container {
 
-                }
-                .review-container{
-                    width:auto;
-                    display:flex;
-                    justify-content:center;                   
-                    flex-direction:column;
-                    padding:20px 80px;
-                    gap:20px;
-                }
-                .review-box{
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    flex-direction:column;
-                    border-style: solid;
-                    border-weight:50px;
-                    border-color:#e0e0e0;
-                    gap:10px;
-                    background-color:#f7f7f7;
-                    padding:10px;
-                    border-radius:20px;
-                    overflow-y: auto;
-                }
-                .card-review{
-                width:90%;
-                border-radius:20px;
-                background-color:white;
-                padding:20px;
-                width:auto
-                gap:10px;
-                }
-                .review-text{
-                    font-size:20px;
-                }
-                .blank-space{
-                    width:100%;
-                    padding:90px;
-                }
-                            """
-                ),
-            ),  # Set the tab title
-            Body(
-                Div(
-                    Div(
-                        A(
-                            Button(
-                                Img(
-                                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Airbnb_Logo_B%C3%A9lo.svg/800px-Airbnb_Logo_B%C3%A9lo.svg.png",
-                                    width=90,
-                                ),
-                                cls="logo-button",
-                                # style="background: none; border: none; cursor: pointer; position: absolute; top: 20px; left: 25%; width:50px; height:50px"
-                            ),
-                            href="/",
-                        ),
-                        Div(
-                            A(
-                                Button("Switch to Traveling",
-                                       cls="switch-button"),
-                                href="/room",
-                            ),
-                            Div(
-                                Button(
-                                    Img(
-                                        src="https://www.freeiconspng.com/thumbs/menu-icon/menu-icon-24.png",
-                                        width=20,
-                                    ),
-                                    cls="profile-button-ui",
-                                ),
-                                cls="profile-button",
-                            ),
-                            cls="right-button",  # group switch button and profile button
-                        ),
-                        cls="header-container",
-                    ),
-                    cls="header",
-                ),
-                # grey line
-                Div(cls="gray-line"),
-                Div(
-                    Div(
-                        Div("Welcome back Bro ur Phone lingin!",
-                            cls="welcome-text"),
-                        Div("Your reservations", cls="your-reservation-text"),
-                        cls="in-welcome-text",
-                    ),
-                    cls="welcome-section",
-                ),
-                Div(
-                    Div("Currently hosting :", cls="currently-hosting-text"),
-                    Div(
-                        *[
-                            Div(
-                                f"Accommodation: {accom['name']}, Address: {accom['address']}",
-                                cls="card-hosting",
-                            )
-                            # Looping through real data
-                            for accom in listmyaccom
-                        ],
-                        # *[
-                        #     Div(
-                        #         f"Accommodation: House {accom}, Address: {accom} Street, City",
-                        #         cls="card-review",
-                        #     )
-                        #     for accom in range(1, 10)
-                        # ],
-                        cls="currently-hosting-box",
-                    ),
-                    cls="currently-hosting-container",
-                ),
-                Div(
-                    Div("Reviews :", cls="review-text"),
-                    Div(
-                        *[
-                            Div(
-                                f"Accommodation: {review["accommodation"]}, Rating: {review["rating"]}, Name: {review["user"]}, Message: {review["message"]}",
-                                cls="card-review",
-                            )
-                            for review in listreview
-                        ],
-                        cls="review-box",
-                    ),
-                    cls="review-container",
-                ),
-                Div(cls="blank-space"),
-            ),
-        )
+    #                 display: flex;
+    #                 align-items: center;
+    #                 justify-content: space-between;
+    #                 width: 100%;
+    #                 padding: 10px 5%;
+    #                 height:60px;
+    #                 position: relative; /* Ensure it stays part of the document flow */
+    #             }
+    #             .logo-button{
+    #                 background: none;
+    #                 border: none;
+    #                 cursor: pointer;
+    #                 width: 50px;
+    #                 height: 50px;
+    #               }
+    #             .right-button {
+    #                 display: flex;
+    #                 align-items: center;
+    #                 gap: 10px; /* Space between Switch and Profile buttons */
+    #             }
+    #             .switch-button{
+    #                background-color: white;
+    #                 transition: all 0.3s;
+    #                 font-family: 'Fredoka';
+    #                 font-size: 16px;
+    #                 border: none;
+    #                 border-radius: 50px;
+    #                 cursor: pointer;
+    #                 width: 150px;
+    #                 height: 38px;
+
+    #               }
+    #             .switch-button:hover{
+    #               background-color: #e7e7e7;
+    #               }
+    #             .profile-button{
+
+    #             }
+    #             .profile-button-ui{
+    #                 width: 70px;
+    #                 height: 38px;
+    #                 border-radius: 50px;
+    #                 border-color: #e7e7e7;
+
+    #                 border-width:1px;
+    #                 transition: all 0.2s ease-in-out;
+    #                 font-size: 20px;
+    #                 font-family: Verdana, Geneva, Tahoma, sans-serif;
+    #                 font-weight: 600;
+    #                 display: flex;
+    #                 align-items: center;
+    #                 justify-content:center;
+    #                 background: white;
+    #                 color: #f5f5f5;
+    #             }
+    #             .profile-button-ui:hover{
+
+    #                 box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
+
+    #             }
+
+    #             .gray-line{
+    #               background-color: #ededed;
+    #                 height: 1px; /* Set the height of the gray line */
+    #                 width: 100%; /* Make the gray line span the full width */
+    #                 margin: 0;
+    #                 padding: 0;
+    #               }
+
+    #             .welcome-section{
+    #                 width:auto;
+    #                 display:flex;
+    #                 justify-content:center;
+    #                 align-items:center;
+    #                 flex-direction:column;
+    #                 padding:0px 80px;
+    #             }
+    #             .in-welcome-text{
+
+    #                 width:100%;
+    #                 display:flex;
+    #                 flex-direction:column;
+    #                 padding:20px 20px;
+
+    #             }
+    #             .welcome-text{
+    #                 padding:20px 0px;
+    #                 font-weight:bold;
+    #                 font-size:35px;
+    #             }
+    #             .your-reservation-text{
+    #                 font-weight: normal;
+    #                 padding:20px 0px;
+    #                 font-size:26px;
+
+    #             }
+    #             .currently-hosting-container{
+    #                 width:auto;
+    #                 display:flex;
+    #                 justify-content:center;
+    #                 flex-direction:column;
+    #                 padding:0px 80px;
+    #                 gap:20px;
+    #             }
+    #             .currently-hosting-text{
+    #                 font-size:20px;
+    #             }
+    #             .currently-hosting-box{
+
+    #                 display:flex;
+    #                 align-items:center;
+    #                 justify-content:center;
+    #                 flex-direction:column;
+    #                 border-style: solid;
+    #                 border-weight:50px;
+    #                 border-color:#e0e0e0;
+    #                 gap:10px;
+    #                 background-color:#f7f7f7;
+    #                 padding:10px;
+    #                 border-radius:20px;
+    #                 overflow-y: auto;
+
+    #             }
+    #             .card-hosting{
+    #                 width:90%;
+    #                 border-radius:20px;
+    #                 background-color:white;
+    #                 padding:20px;
+    #                 width:auto
+    #                 gap:10px;
+
+    #             }
+    #             .review-container{
+    #                 width:auto;
+    #                 display:flex;
+    #                 justify-content:center;
+    #                 flex-direction:column;
+    #                 padding:20px 80px;
+    #                 gap:20px;
+    #             }
+    #             .review-box{
+    #                 display:flex;
+    #                 align-items:center;
+    #                 justify-content:center;
+    #                 flex-direction:column;
+    #                 border-style: solid;
+    #                 border-weight:50px;
+    #                 border-color:#e0e0e0;
+    #                 gap:10px;
+    #                 background-color:#f7f7f7;
+    #                 padding:10px;
+    #                 border-radius:20px;
+    #                 overflow-y: auto;
+    #             }
+    #             .card-review{
+    #             width:90%;
+    #             border-radius:20px;
+    #             background-color:white;
+    #             padding:20px;
+    #             width:auto
+    #             gap:10px;
+    #             }
+    #             .review-text{
+    #                 font-size:20px;
+    #             }
+    #             .blank-space{
+    #                 width:100%;
+    #                 padding:90px;
+    #             }
+    #                         """
+    #             ),
+    #         ),  # Set the tab title
+    #         Body(
+    #             Div(
+    #                 Div(
+    #                     A(
+    #                         Button(
+    #                             Img(
+    #                                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Airbnb_Logo_B%C3%A9lo.svg/800px-Airbnb_Logo_B%C3%A9lo.svg.png",
+    #                                 width=90,
+    #                             ),
+    #                             cls="logo-button",
+    #                             # style="background: none; border: none; cursor: pointer; position: absolute; top: 20px; left: 25%; width:50px; height:50px"
+    #                         ),
+    #                         href="/",
+    #                     ),
+    #                     Div(
+    #                         A(
+    #                             Button("Switch to Traveling", cls="switch-button"),
+    #                             href="/room",
+    #                         ),
+    #                         Div(
+    #                             Button(
+    #                                 Img(
+    #                                     src="https://www.freeiconspng.com/thumbs/menu-icon/menu-icon-24.png",
+    #                                     width=20,
+    #                                 ),
+    #                                 cls="profile-button-ui",
+    #                             ),
+    #                             cls="profile-button",
+    #                         ),
+    #                         cls="right-button",  # group switch button and profile button
+    #                     ),
+    #                     cls="header-container",
+    #                 ),
+    #                 cls="header",
+    #             ),
+    #             # grey line
+    #             Div(cls="gray-line"),
+    #             Div(
+    #                 Div(
+    #                     Div("Welcome back Bro ur Phone lingin!", cls="welcome-text"),
+    #                     Div("Your reservations", cls="your-reservation-text"),
+    #                     cls="in-welcome-text",
+    #                 ),
+    #                 cls="welcome-section",
+    #             ),
+    #             Div(
+    #                 Div("Currently hosting :", cls="currently-hosting-text"),
+    #                 Div(
+    #                     *[
+    #                         Div(
+    #                             f"Accommodation: {accom['name']}, Address: {accom['address']}",
+    #                             cls="card-hosting",
+    #                         )
+    #                         for accom in listmyaccom  # Looping through real data
+    #                     ],
+    #                     # *[
+    #                     #     Div(
+    #                     #         f"Accommodation: House {accom}, Address: {accom} Street, City",
+    #                     #         cls="card-review",
+    #                     #     )
+    #                     #     for accom in range(1, 10)
+    #                     # ],
+    #                     cls="currently-hosting-box",
+    #                 ),
+    #                 cls="currently-hosting-container",
+    #             ),
+    #             Div(
+    #                 Div("Reviews :", cls="review-text"),
+    #                 Div(
+    #                     *[
+    #                         Div(
+    #                             f"Accommodation: {review["accommodation"]}, Rating: {review["rating"]}, Name: {review["user"]}, Message: {review["message"]}",
+    #                             cls="card-review",
+    #                         )
+    #                         for review in listreview
+    #                     ],
+    #                     cls="review-box",
+    #                 ),
+    #                 cls="review-container",
+    #             ),
+    #             Div(cls="blank-space"),
+    #         ),
+    #     )
 
     def get_html_price_summary(self, user_id, accom_id, form_data):
         controlsystem = self
@@ -2940,12 +3211,15 @@ class ControlSystem:
                                   value=f"{user_id}"),
                             Input(type="hidden", name="check_in",
                                   value=f"{check_in}"),
-                            Input(type="hidden", name="check_out",
-                                  value=f"{check_out}"),
+                            Input(
+                                type="hidden", name="check_out", value=f"{check_out}"
+                            ),
                             Input(type="hidden", name="accom_id",
                                   value=f"{accom_id}"),
                             Input(
-                                type="hidden", name="total_price", value=f"{total_price}"
+                                type="hidden",
+                                name="total_price",
+                                value=f"{total_price}",
                             ),
                             Input(type="hidden", name="guests",
                                   value=f"{guests}"),
@@ -2962,7 +3236,9 @@ class ControlSystem:
             ),
         )
 
-    def get_html_create_booking(self, user_id, check_in, check_out, accom_id, total_price, guests):
+    def get_html_create_booking(
+        self, user_id, check_in, check_out, accom_id, total_price, guests
+    ):
         controlsystem = self
         print(
             f"Received data: user_id={user_id}, check_in={check_in}, check_out={check_out}, accom_id={accom_id}, total_price={total_price}, guests={guests}"
@@ -2976,9 +3252,9 @@ class ControlSystem:
         except ValueError:
             return "Invalid data received", 400
         booking_item = controlsystem.create_booking(
-            user_id, check_in, check_out, accom_id, total_price, guests
+            user_id, check_in, check_out, accom_id, guests
         )
-        print(booking_item)
+        # print(booking_item)
         if isinstance(booking_item, str):
             return P(booking_item)
         booking_id = booking_item
@@ -3009,16 +3285,27 @@ class ControlSystem:
 
     def get_member_id(self, name, email, phone_number, password):
         for i in self.__member_list:
-            text, bool_check = i.login(name, email, phone_number, password)
+            text, bool_check = i.login(name, email, password)
             if bool_check:
                 return text
         return text
 
-    def create_account(self, name: str, email: str, password: str, phone: str, age: int):  # dew
+    def get_host_id(self, name, email, phone_num, password):
+        for i in self.__host_list:
+            text, bool_check = i.login(name, email, password)
+            if bool_check:
+                return text
+        return text
+
+    def create_account(
+        self, name: str, email: str, password: str, phone: str, age: int
+    ):  # dew
         try:
             from .User import Member
-            acount = Member(name=name, email=email,
-                            password=password, phone_num=phone, age=age)
+
+            acount = Member(
+                name=name, email=email, password=password, phone_num=phone, age=age
+            )
             self.add_member(acount)
             return "Success"
         except:

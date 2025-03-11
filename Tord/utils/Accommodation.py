@@ -4,7 +4,14 @@ from datetime import datetime
 class Accommodation:
     count_id = 1
 
-    def __init__(self, name, address, info, price, pic="https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"):
+    def __init__(
+        self,
+        name,
+        address,
+        info,
+        price,
+        pic="https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    ):
         self.__id = Accommodation.count_id
         self.__accom_name = name
         self.__address = address
@@ -23,6 +30,7 @@ class Accommodation:
 
     def add_booked_date(self, booked_date) -> str:
         from .Booking import BookedDate
+
         if not isinstance(booked_date, BookedDate):
             return "Error"
         self.__booked_date_list.append(booked_date)
@@ -30,6 +38,7 @@ class Accommodation:
 
     def del_booked_date(self, target):
         from .Booking import BookedDate
+
         if not isinstance(target, BookedDate):
             return "Error"
         self.__booked_date_list.remove(target)
@@ -51,6 +60,7 @@ class Accommodation:
 
     def add_host(self, host):
         from .User import Host
+
         if not isinstance(host, Host):
             return "Error"
         else:
@@ -135,7 +145,7 @@ class Accommodation:
     # def clear_accom_pics(self):
     #     self.__accom_pics = []
 
-# -----------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------
 
     @property
     def get_info(self):
@@ -202,6 +212,7 @@ class Accommodation:
     @property
     def get_booked_date(self, booked_date):
         from .Booking import BookedDate
+
         if not isinstance(booked_date, BookedDate):
             return "Error"
         else:
@@ -217,11 +228,19 @@ class Accommodation:
     def clear_accom_pics(self):  # ✅ Add this method
         self.__accom_pics = []
 
+
 #
 
 
 class House(Accommodation):
-    def __init__(self, name, address, info, price, pic="https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"):
+    def __init__(
+        self,
+        name,
+        address,
+        info,
+        price,
+        pic="https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    ):
         super().__init__(name, address, info, price, pic)
 
     def cal_price(self, start_date, end_date):
@@ -232,7 +251,15 @@ class House(Accommodation):
 
 
 class Hotel(Accommodation):
-    def __init__(self, name, address, info, pic="https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"):
+    room_id = 1  # Class variable to track room IDs globally
+
+    def __init__(
+        self,
+        name,
+        address,
+        info,
+        pic="https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    ):
         super().__init__(name, address, info, price=0, pic=pic)
         self.__rooms = []
 
@@ -263,12 +290,16 @@ class Hotel(Accommodation):
             price_list.append(price)
         return price_list
 
-    def add_room(self, room):
-        if not isinstance(room, Room):
-            return "Error"
-        else:
-            self.__rooms.append(room)
-            return "Success"
+    def add_room(self, price, room_type, hotel_address, hotel_name, number_of_room):
+        """Create a new room and assign an auto-incrementing room_id"""
+        for _ in range(number_of_room):  # Ensure it loops the correct number of times
+            new_room = Room(Hotel.room_id, room_type, price,
+                            hotel_address, hotel_name)
+            self.__rooms.append(new_room)
+            Hotel.room_id += 1  # Increment room_id for the next room
+            print(new_room)
+        print(self.__rooms)
+        return "Success"
 
     def cal_price(self, start_date, end_date):
         price_list = []
@@ -293,36 +324,30 @@ class Hotel(Accommodation):
 
 
 class Room(Accommodation):
-    def __init__(self, room_id, room_floor, price, hotel_address, hotel_name, pic="https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"):
-        # FIXME:
+    def __init__(self, room_id, room_type, price, hotel_address, hotel_name):
+        """Each room gets a unique room_id from the Hotel class"""
         super().__init__(
             name=f"Room {room_id}",
-            address=f"{hotel_address} - Floor {room_floor}",
+            address=f"{hotel_address} - Room Type {room_type}",
+
             info=f"Room in {hotel_name}",
             price=price,
-            pic=pic
         )
-        self.__room_id = room_id
-        self.__room_floor = room_floor
-        self.__booked_date = []
 
-    # def get_price_accom(self, start_date, end_date, guest_amount):
-    #     num_days = (end_date - start_date).days
-    #     return num_days * self.__price_per_day
+    @property
+    def get_price(self):
+        return self.__price
 
-    def cal_price(self, check_in, check_out, guest_amount=1):
-        return self.cal_price_accom(check_in, check_out, guest_amount)
-
-    def __str__(self):
-        return f"Room ID: {self.get_room_id} Floor: {self.get_room_floor} Price: {self.get_price} Address: {self.get_address}"
+    @property
+    def get_price(self):
+        return self.__price
 
     @property
     def get_room_id(self):
         return self.__room_id
 
-    @property
-    def get_room_floor(self):
-        return self.__room_floor
+    def __str__(self):
+        return f"Room: {self.get_acc_name}, Address: {self.get_address}, Price: {self.get_price}"
 
 
 class Review:

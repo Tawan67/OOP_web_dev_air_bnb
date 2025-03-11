@@ -87,7 +87,9 @@ class Booking:
         self.__booking_status = input1
         return "Succees"
 
-    def update_payment(self, payment: 'Payment'):
+    def update_payment(self, payment):
+        from .Payment import Payment
+        isinstance(payment, Payment)
         self.__payment = payment
         return "Success"
         pass
@@ -112,6 +114,9 @@ class Booking:
 
     def create_payment(self, price, period, paymed):
         from .Payment import Payment
+        if not (isinstance(price, int) and isinstance(period, int)):
+            payment = Payment(None, None, None)
+            return payment
         payment = Payment(period=period, pay_med=paymed, price=price)
         return payment
 
@@ -183,10 +188,14 @@ class Booking:
             f"Payment: {self.__payment}\n"
             f"Payment Method: {self.__pay_med}"
             f"Price : {self.__price}"
+            f"User ID: {self.__member.get_user_id}"
         )
 
     def set_amount(self, amount):
         self.__amount = amount
+        
+    def add_payment(self, payment):
+        self.__payment = payment
 
     def add_coupon_by_id(self, coupon_id):
         from .User import Coupon
