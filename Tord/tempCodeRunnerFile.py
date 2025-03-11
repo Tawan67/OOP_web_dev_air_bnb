@@ -1,1 +1,1 @@
-payment/booking
+/add/pro
