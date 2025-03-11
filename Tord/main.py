@@ -2,6 +2,7 @@ from fasthtml.common import *
 from datetime import datetime, timedelta
 from calendar import monthrange, weekday
 import time
+import asyncio
 
 from utils.ControlSystem import ControlSystem 
 from utils.Booking import Booking
@@ -46,12 +47,13 @@ def setup_app(app):
 # Call setup once when the app starts
 setup_app(app)
 
-while True:
-    current_time = datetime.now()
-    if current_time - start_time >= timedelta(seconds=10):
-        app.state.control_system.deduction_period()
-        start_time = current_time  # Reset the timer
-    time.sleep(1)  # Add small delay to prevent CPU overuse
+# Periodic task to check and deduct period
+async def periodic_deduction():
+    while True:
+        status = app.state.control_system.deduction_period()
+        print(f"Periodic deduction status: {status}")
+        await asyncio.sleep(10)  # Wait 10 seconds between checks
+
 
 def get_style():
     return Style("""
@@ -1379,6 +1381,10 @@ async def post(user_id: int, accom_id: int, request: Request):
             ),
         ),
     )
+
+@app.on_event("startup")
+async def start_periodic_task():
+    asyncio.create_task(periodic_deduction())
 
 
 if __name__ == "__main__":

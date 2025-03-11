@@ -1042,7 +1042,7 @@ class ControlSystem:
 
         # Get the data
         members = self.get_member_list
-        payments = self.get_payment_method_list
+        payment_method_list = self.get_payment_method_list
         accommodations = self.get_accommodation_list
         hosts = self.get_host_list
         bookings = self.get_booking_list
@@ -1070,7 +1070,7 @@ class ControlSystem:
                             Ul(*[Li(str(member)) for member in members], klass="item-list")
                         ),
                         Td(
-                            Ul(*[Li(str(payment)) for payment in payments], klass="item-list")
+                            Ul(*[Li(str(paymentmethod)) for paymentmethod in payment_method_list], klass="item-list")
                         ),
                         Td(
                             Ul(*[Li(str(acc)) for acc in accommodations], klass="item-list")
@@ -2908,7 +2908,7 @@ class ControlSystem:
         except ValueError:
             return "Invalid data received", 400
         booking_item = controlsystem.create_booking(
-            user_id, check_in, check_out, accom_id, total_price, guests
+            user_id, check_in, check_out, accom_id, guests
         )
         print(booking_item)
         if isinstance(booking_item, str):
@@ -2967,4 +2967,8 @@ class ControlSystem:
             for period in payment.get_period_list:
                 if period.get_status == False:
                     payment.get_pay_med.deduction(period.get_price)
-                    period.get_status = True
+                    period.update_status(True)
+                    break
+                
+        return "Success"
+                    

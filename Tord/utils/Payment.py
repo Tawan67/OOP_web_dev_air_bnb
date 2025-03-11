@@ -103,6 +103,9 @@ class PaymentMethod:
         return self.__expired_date.strftime("%Y-%m-%d")
     
     def deduction(self, pray_tang):
+        if isinstance(pray_tang, str):
+            pray_tang = int(pray_tang)
+        
         if pray_tang > self.__balance:
             return "Not enough balance"
         else:   
@@ -143,12 +146,17 @@ class Period:
         self.price = price
         self.date = date
         pass
+    
+    @property
+    def get_status(self): 
+        return self.status
 
-    def update_status(self):
+    def update_status(self, new_status):
         new_status = not (self.status)
         self.status = new_status
     pass
 
+    @property
     def get_price(self):
         return self.price
 
