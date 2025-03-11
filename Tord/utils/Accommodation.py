@@ -325,13 +325,13 @@ class Room(Accommodation):
         super().__init__(
             name=f"Room {room_id}",
             address=f"{hotel_address} - Room Type {room_type}",
-@property
-def get_price(self):
-    return self.__price
 
             info=f"Room in {hotel_name}",
             price=price,
         )
+    @property
+    def get_price(self):
+        return self.__price
 
     @property
     def get_price(self):
