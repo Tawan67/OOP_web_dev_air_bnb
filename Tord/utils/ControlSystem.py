@@ -150,7 +150,6 @@ class ControlSystem:
     def create_booking(self, user_id, check_in, check_out, accom_id, guests):
         # guest_amount = int(guest_amount)
         user_id = int(user_id)
-        price = int(total_price)
         accom_id = int(accom_id)
         member = self.search_member_by_id(user_id)
         if member == None:
