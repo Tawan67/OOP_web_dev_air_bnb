@@ -1,5 +1,6 @@
 from datetime import datetime
 
+
 class Booking:
     id = 1
 
@@ -19,6 +20,7 @@ class Booking:
         self.__payment = None
         self.__pay_med = None
         self.__price = None
+        self.__coupon = None
         Booking.id += 1
 
     # dew
@@ -29,11 +31,11 @@ class Booking:
 
     def reset_increment(self):
         Booking.id = 1
-    
+
     def set_status(self, status):
         self.__booking_status = status
         return "Success"
-    
+
     @property
     def get_member(self):
         return self.__member
@@ -49,10 +51,8 @@ class Booking:
     @property
     def get_date(self):
         return self.__date
-    
 
     @property
-    
     def get_booked_date(self):
         return self.__booked_date
 
@@ -75,7 +75,10 @@ class Booking:
     @property
     def get_pay_med(self):
         return self.__pay_med
-    
+
+    @property
+    def get_cou(self):
+        return self.__coupon
 
     def update_booking_status(self, input1):
         if not isinstance(input1, str):
@@ -93,11 +96,11 @@ class Booking:
         self.__pay_med = pay_med
         return "Success"
         pass
-    
+
     def update_date(self, start, end):
         result = self.create_booked_date(start, end)
         return result
-    
+
     def update_guest(self, guest):
         try:
             if not (isinstance(guest, int)):
@@ -111,7 +114,7 @@ class Booking:
         from .Payment import Payment
         payment = Payment(period=period, pay_med=paymed, price=price)
         return payment
-    
+
     def create_payment_and_med(self, payment, paymed, card_num, password, period, balance, point=10):
         from .Payment import Payment
         if self.__member.get_pay_med.get_bank_id == card_num:
@@ -130,13 +133,12 @@ class Booking:
         self.update_pay_med(paymed)
         self.update_payment(payment)
         return "Success"
-    
+
     def create_pay_med(self, id, balance):
         from .Payment import PaymentMethod
         pay_med = PaymentMethod(
             bank_id=id, user=self.__member, balance=balance)
         return pay_med
-
 
     def create_booked_date(self, start, end):
         try:
@@ -146,18 +148,19 @@ class Booking:
             return "success"
         except:
             return "create date got a problem"
-    
+
     def cal_price(self):
         try:
             result = self.get_accommodation.cal_price_accom(
-                self.get_booked_date.get_checkindate, 
-                self.get_booked_date.get_checkoutdate, 
+                self.get_booked_date.get_checkindate,
+                self.get_booked_date.get_checkoutdate,
                 self.get_guess_amount
+
             )
             return result
         except Exception as e:
             return e
-        
+
     def add_booked_date(self, date):
         try:
             isinstance(date, BookedDate)
@@ -165,9 +168,9 @@ class Booking:
             return "Success"
         except Exception as e:
             return e
-        
-    
+
     # format booking class to text format
+
     def __str__(self):
         return (
             f"Booking ID: {self.__booking_id}\n"
@@ -181,11 +184,22 @@ class Booking:
             f"Payment Method: {self.__pay_med}"
             f"Price : {self.__price}"
         )
-        
+
     def set_amount(self, amount):
         self.__amount = amount
 
-    
+    def add_coupon_by_id(self, coupon_id):
+        from .User import Coupon
+        from .User import Member
+        if coupon_id == "del":
+            self.set_cou(None)
+        coupon = self.__member.search_cou_by_id(coupon_id)
+        if isinstance(coupon, str):
+            return coupon
+        self.set_cou(coupon)
+
+    def set_cou(self, coupon):
+        self.__coupon = coupon
 
 
 class BookedDate:
@@ -200,7 +214,7 @@ class BookedDate:
     @property
     def get_checkoutdate(self):
         return self.__checkoutdate
-    
+
     @property
     def get_checkindate_pretty(self):
         return self.__checkindate.strftime("%d/%m/%Y")
@@ -208,7 +222,7 @@ class BookedDate:
     @property
     def get_checkoutdate_pretty(self):
         return self.__checkoutdate.strftime("%d/%m/%Y")
-    
+
     @property
     def to_string(self):
         return f"{self.__checkindate.strftime('%d-%m-%Y')} to {self.__checkoutdate.strftime('%d-%m-%Y')}"
