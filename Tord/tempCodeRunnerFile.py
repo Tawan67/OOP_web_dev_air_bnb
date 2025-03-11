@@ -1,1 +1,1 @@
-room_type
+/add/pro

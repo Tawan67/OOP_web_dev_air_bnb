@@ -40,6 +40,13 @@ class User:
     
     def __str__(self):
         return f"User ID: {self.__user_id}\nUser Name: {self.__user_name}\nEmail: {self.__email}"
+    
+    def login(self, name, email, password):
+        if not (self.get_user_name == name or self.get_email == email):
+            return "Not Found", False
+        if not (self.get_password == password):
+            return "Not Found", False
+        return self.get_user_id, True
 
 
 class Member(User):
@@ -90,14 +97,7 @@ class Member(User):
     def __str__(self):
         return super().__str__() + f", Payment Method: {[str(paymed) for paymed in self.__payment_method]}"
     
-    def login(self, name, email, phone_num, password):
-        if not (self.get_user_name == name or self.get_email == email):
-            return "Wrong name or email", False
-        if not (self.get_phone_num == phone_num):
-            return "Wrong Phone Num", False
-        if not (self.get_password == password):
-            return "Wrong Password ", False
-        return self.get_user_id, True
+    
     
 
 
@@ -108,7 +108,9 @@ class Host(User):
         self.__phone_num = phone_num
         self.__age = age
         self.__pay_med = None
+        self.__payment_method = []
         self.__my_accommodation = []
+        self.__booking_list = []
 
     def update_payment_method(self, input1):
         self.__pay_med = input1
@@ -120,7 +122,19 @@ class Host(User):
             return "Error"
         self.__my_accommodation.append(input1)
         return "Success"
+    
+    def add_payment_method(self, payment_method):
+        from .Payment import PaymentMethod
+        if not isinstance(payment_method, PaymentMethod):
+            return "Error"
+        self.__payment_method.append(payment_method)
+        return "Success"
 
+
+    def add_booking(self, input1):
+        self.__booking_list.append(input1)
+        
+        
     @property
     def get_phone_num(self):
         return self.__phone_num

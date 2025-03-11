@@ -96,7 +96,7 @@ async def process_payment(req, booking_id: int):
     result = web_control_system.process_payment(booking_id, web_payment_method, web_payment_expired_date, web_payment_vcc, web_payment_type, web_period)
     return result
     
-@rt('/')
+@rt('/') 
 async def index(req):
     user_id = req.session.get("user_id")
     if not user_id:
@@ -1182,10 +1182,10 @@ async def post(req):
     
     control = app.state.control_system
     user_id = control.get_member_id(name, email, phone_num, password)
-    if not user_id:
-        return Div(H1("Error: Login Fail"), A(Button("Try Again"), href="/log_in"))
-     
+    if user_id == "Not Found":
+        user_id = control.get_host_id(name, email, phone_num, password)
     req.session["user_id"] = str(user_id)
+    
     return RedirectResponse("/", status_code=303)
 
 @rt('/logout')
@@ -1193,7 +1193,7 @@ def get(req):
     req.session.clear()  # Clear the session
     return RedirectResponse("/log_in", status_code=303)
 
-@rt("/price_summary/{user_id}/{accom_id}", methods=["POST"])
+@rt("/price_summary/{user_id}/{accom_id}", methods=["POST"]) # Dew
 async def post(user_id: int, accom_id: int, request: Request):
     user_id = request.session.get("user_id")
     print(f"accom id in price = {accom_id}")
