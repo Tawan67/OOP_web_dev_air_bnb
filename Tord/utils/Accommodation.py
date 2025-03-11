@@ -1,9 +1,17 @@
 from datetime import datetime
 
+
 class Accommodation:
     count_id = 1
 
-    def __init__(self, name, address, info, price, pic="https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"):
+    def __init__(
+        self,
+        name,
+        address,
+        info,
+        price,
+        pic="https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    ):
         self.__id = Accommodation.count_id
         self.__accom_name = name
         self.__address = address
@@ -16,14 +24,13 @@ class Accommodation:
         self.__reviews = []
         self.__host = None
         Accommodation.count_id += 1
-        
 
     def reset_increament(self):
         Accommodation.count_id = 1
 
-    
     def add_booked_date(self, booked_date) -> str:
         from .Booking import BookedDate
+
         if not isinstance(booked_date, BookedDate):
             return "Error"
         self.__booked_date_list.append(booked_date)
@@ -31,6 +38,7 @@ class Accommodation:
 
     def del_booked_date(self, target):
         from .Booking import BookedDate
+
         if not isinstance(target, BookedDate):
             return "Error"
         self.__booked_date_list.remove(target)
@@ -52,12 +60,12 @@ class Accommodation:
 
     def add_host(self, host):
         from .User import Host
+
         if not isinstance(host, Host):
             return "Error"
         else:
             self.__host = host
             return "Success"
-
 
     def create_review(self, rating, user, message):
         try:
@@ -72,7 +80,7 @@ class Accommodation:
             pass
         except:
             return "Wrong Type Review"
-        
+
     def cal_price_not_fee(self, start_date, end_date):
         # Convert HTML date strings (e.g., "2025-03-01") to datetime objects
         if not isinstance(start_date, datetime):
@@ -89,36 +97,36 @@ class Accommodation:
         # Calculate total price
         total_price = day_count * self.__price
         return total_price
-    
+
     def cal_price_accom(self, start_date, end_date, guest_amount=1):
         if isinstance(start_date, str):
             try:
                 start_date = datetime.strptime(start_date, "%Y-%m-%d")
             except ValueError:
                 raise ValueError("start_date must be in 'YYYY-MM-DD' format")
-                
+
         if isinstance(end_date, str):
             try:
                 end_date = datetime.strptime(end_date, "%Y-%m-%d")
             except ValueError:
                 raise ValueError("end_date must be in 'YYYY-MM-DD' format")
-        
+
         if not isinstance(start_date, datetime) or not isinstance(end_date, datetime):
             raise TypeError("Dates must be datetime objects or valid date strings")
-        
+
         if end_date <= start_date:
             raise ValueError("end_date must be after start_date")
-        
+
         days_between = (end_date - start_date).days + 1
-        
+
         base_price = days_between * self.get_price
-        
+
         service_fee = base_price * 0.05 * guest_amount
-        
+
         total_price = base_price + service_fee
-        
+
         return total_price
-    
+
     def get_price_accom(self, start_date, end_date, guest_amount, get_fee=False):
         day_between = (end_date - start_date).days
         total_price = (day_between) * self.get_price
@@ -127,17 +135,15 @@ class Accommodation:
         if get_fee:
             return fee
         return total_price
-    
+
     @property
-    def get_status (self):
+    def get_status(self):
         return self.__status
-    
-    
-    
+
     # def clear_accom_pics(self):
     #     self.__accom_pics = []
 
-# -----------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------
 
     @property
     def get_info(self):
@@ -146,7 +152,7 @@ class Accommodation:
     @property
     def get_price(self):
         return self.__price
-    
+
     """ dew
     @property
     def get_one_price(self):
@@ -172,13 +178,13 @@ class Accommodation:
     @property
     def get_booked_date_string(self):
         list = []
-        #get_booked_date_by_id
+        # get_booked_date_by_id
         for x in self.__booked_date_list:
             list.append(x.to_string)
         return list
-    
+
     @property
-    def get_booked_date_list(self): # change from get_booked_date
+    def get_booked_date_list(self):  # change from get_booked_date
         return self.__booked_date_list
 
     """ dew
@@ -190,19 +196,21 @@ class Accommodation:
     @property
     def get_reviews(self):
         return self.__reviews
-    
+
     @property
     def get_host(self):
         return self.__host
-    @property 
+
+    @property
     def get_booked_date_by_id(self, id):
         for x in self.__booked_date_list:
             if x.get_id == id:
                 return x
-            
+
     @property
     def get_booked_date(self, booked_date):
         from .Booking import BookedDate
+
         if not isinstance(booked_date, BookedDate):
             return "Error"
         else:
@@ -210,33 +218,46 @@ class Accommodation:
                 if booked_date == booked:
                     return booked
             return "Cant find"
-        
+
     def update_status(self) -> str:
         self.__status = not self.__status
         return "Success"
-    
+
     def clear_accom_pics(self):  # ✅ Add this method
         self.__accom_pics = []
+
 
 #
 
 
 class House(Accommodation):
-    def __init__(self, name, address, info, price, pic="https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"):
+    def __init__(
+        self,
+        name,
+        address,
+        info,
+        price,
+        pic="https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    ):
         super().__init__(name, address, info, price, pic)
-        
+
     def cal_price(self, start_date, end_date):
         return self.cal_price_accom(start_date, end_date)
-    
+
     def __str__(self):
         return f"House: {self.get_acc_name}, Address: {self.get_address}, Price: {self.get_price}"
-
 
 
 class Hotel(Accommodation):
     room_id = 1  # Class variable to track room IDs globally
 
-    def __init__(self, name, address, info, pic="https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"):
+    def __init__(
+        self,
+        name,
+        address,
+        info,
+        pic="https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    ):
         super().__init__(name, address, info, price=0, pic=pic)
         self.__rooms = []
 
@@ -246,27 +267,27 @@ class Hotel(Accommodation):
                 start_date = datetime.strptime(start_date, "%Y-%m-%d")
             except ValueError:
                 raise ValueError("start_date must be in 'YYYY-MM-DD' format")
-                
+
         if isinstance(end_date, str):
             try:
                 end_date = datetime.strptime(end_date, "%Y-%m-%d")
             except ValueError:
                 raise ValueError("end_date must be in 'YYYY-MM-DD' format")
-        
+
         if not isinstance(start_date, datetime) or not isinstance(end_date, datetime):
             raise TypeError("Dates must be datetime objects or valid date strings")
-        
+
         if end_date <= start_date:
             raise ValueError("end_date must be after start_date")
-        
+
         days_between = (end_date - start_date).days
         price_list = []
         for room in self.__rooms:
-            price=room.cal_price_accom(start_date, end_date, guest_amount)
+            price = room.cal_price_accom(start_date, end_date, guest_amount)
             price_list.append(price)
         return price_list
 
-    def add_room(self, price, room_type, hotel_address, hotel_name,number_of_room):
+    def add_room(self, price, room_type, hotel_address, hotel_name, number_of_room):
         """Create a new room and assign an auto-incrementing room_id"""
         for _ in range(number_of_room):  # Ensure it loops the correct number of times
             new_room = Room(Hotel.room_id, room_type, price, hotel_address, hotel_name)
@@ -282,7 +303,7 @@ class Hotel(Accommodation):
             price = room.cal_price_accom(start_date, end_date)
             price_list.append(price)
         return price_list
-    
+
     def __str__(self):
         return f"Hotel: {self.get_acc_name}, Address: {self.get_address}, Rooms: {[str(room) for room in self.get_rooms]}"
 
@@ -296,35 +317,28 @@ class Hotel(Accommodation):
     @property
     def get_rooms(self):
         return self.__rooms
-    
 
 
 class Room(Accommodation):
-    def init(self, room_id, room_type, price, hotel_address, hotel_name):
+    def __init__(self, room_id, room_type, price, hotel_address, hotel_name):
         """Each room gets a unique room_id from the Hotel class"""
-        super().init(
+        super().__init__(
             name=f"Room {room_id}",
             address=f"{hotel_address} - Room Type {room_type}",
-@property
-def get_price(self):
-    return self.__price
-
             info=f"Room in {hotel_name}",
-            price=price
+            price=price,
         )
+
+    @property
+    def get_price(self):
+        return self.__price
 
     @property
     def get_room_id(self):
         return self.__room_id
-    
+
     def __str__(self):
         return f"Room: {self.get_acc_name}, Address: {self.get_address}, Price: {self.get_price}"
-
-
-
-
-
-
 
 
 class Review:

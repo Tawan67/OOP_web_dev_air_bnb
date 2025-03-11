@@ -1,4 +1,3 @@
-
 class User:
     count_id = 1
 
@@ -33,11 +32,11 @@ class User:
     @property
     def get_email(self):
         return self.__email
-    
+
     @property
     def get_password(self):
         return self.__password
-    
+
     def __str__(self):
         return f"User ID: {self.__user_id}\nUser Name: {self.__user_name}\nEmail: {self.__email}"
 
@@ -54,6 +53,7 @@ class Member(User):
 
     def add_payment_method(self, payment_method):
         from .Payment import PaymentMethod
+
         if not isinstance(payment_method, PaymentMethod):
             return "Error"
         self.__payment_method.append(payment_method)
@@ -65,11 +65,9 @@ class Member(User):
 
     def use_coupon(self, input1):
         pass
-    
+
     def add_booking(self, input1):
         self.__booking_list.append(input1)
-
-
 
     @property
     def get_coupons(self):
@@ -86,20 +84,19 @@ class Member(User):
     @property
     def get_payment_method_list(self):
         return self.__payment_method
-    
+
     def __str__(self):
-        return super().__str__() + f", Payment Method: {[str(paymed) for paymed in self.__payment_method]}"
-    
+        return (
+            super().__str__()
+            + f", Payment Method: {[str(paymed) for paymed in self.__payment_method]}"
+        )
+
     def login(self, name, email, phone_num, password):
         if not (self.get_user_name == name or self.get_email == email):
             return "Wrong name or email", False
-        if not (self.get_phone_num == phone_num):
-            return "Wrong Phone Num", False
-        if not (self.get_password == password):
+        if not (self.get_password == int(password)):
             return "Wrong Password ", False
         return self.get_user_id, True
-    
-
 
 
 class Host(User):
@@ -116,10 +113,18 @@ class Host(User):
 
     def add_accommodation(self, input1):
         from .Accommodation import Accommodation
+
         if not isinstance(input1, Accommodation):
             return "Error"
         self.__my_accommodation.append(input1)
         return "Success"
+
+    def login(self, name, email, phone_num, password):
+        if not (self.get_user_name == name or self.get_email == email):
+            return "Wrong name or email", False
+        if not (self.get_password == int(password)):
+            return "Wrong Password ", False
+        return self.get_user_id, True
 
     @property
     def get_phone_num(self):
@@ -132,20 +137,21 @@ class Host(User):
     @property
     def get_accommodation(self):
         return self.__my_accommodation
-    
+
     def create_house(self, name, address, info, price):
         from .Accommodation import House
+
         a = House(name, address, info, price)
         self.add_accommodation(a)
         return a
-    
+
     def create_hotel(self, name, address, info, rooms):
         from .Accommodation import Hotel
+
         a = Hotel(name, address, info)
         print(rooms)
         for room in rooms:
-            a.add_room(room[1],room[0],address,name,room[2])
-            
+            a.add_room(room[1], room[0], address, name, room[2])
 
         self.add_accommodation(a)
         return a
