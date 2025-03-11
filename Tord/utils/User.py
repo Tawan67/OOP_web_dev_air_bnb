@@ -132,6 +132,23 @@ class Host(User):
     @property
     def get_accommodation(self):
         return self.__my_accommodation
+    
+    def create_house(self, name, address, info, price):
+        from .Accommodation import House
+        a = House(name, address, info, price)
+        self.add_accommodation(a)
+        return a
+    
+    def create_hotel(self, name, address, info, rooms):
+        from .Accommodation import Hotel
+        a = Hotel(name, address, info)
+        print(rooms)
+        for room in rooms:
+            a.add_room(room[1],room[0],address,name,room[2])
+            
+
+        self.add_accommodation(a)
+        return a
 
 
 class Admin(User):

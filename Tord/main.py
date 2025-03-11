@@ -95,7 +95,7 @@ async def process_payment(req, booking_id: int):
     # TODO:
     result = web_control_system.process_payment(booking_id, web_payment_method, web_payment_expired_date, web_payment_vcc, web_payment_type, web_period)
     return result
-
+    
 @rt('/')
 async def index(req):
     user_id = req.session.get("user_id")
@@ -1381,6 +1381,212 @@ async def post(user_id: int, accom_id: int, request: Request):
             ),
         ),
     )
+
+
+@rt('/create_accommodation/{host_id}')
+def get(host_id: int):
+    return Container(
+        H1("Create Accommodation", style="text-align: center;"),
+        Form(
+            Group(
+                Input(type="hidden", id="host_id", name="host_id", value=host_id),
+                
+                Div(
+                    Label("Accommodation Type:"),
+                    Select(
+                        Option("House", value="House"),
+                        Option("Hotel", value="Hotel"),
+                        id="accom_type",
+                        name="accom_type",
+                        onchange="toggleFields()"
+                    ),
+                    style="margin-bottom: 10px;"
+                ),
+
+                Div(
+                    Label("Accommodation Name:"), 
+                    Input(
+                        type="text", 
+                        id="name",
+                        name="name",
+                        required=True,
+                        pattern="[A-Za-z ]{2,}",
+                        title="Name must contain only letters",
+                        style="width: 100%;"
+                    ),
+                    style="margin-bottom: 10px;"
+                ),
+
+                Div(
+                    Label("Address:"), 
+                    Input(
+                        type="text",
+                        id="address",
+                        name="address",
+                        required=True,
+                        style="width: 100%;"
+                    ),
+                    style="margin-bottom: 10px;"
+                ),
+
+                Div(
+                    Label("Accommodation Info:"), 
+                    Input(
+                        type="text", 
+                        id="info",
+                        name="info",
+                        required=True,
+                        style="width: 100%;"
+                    ),
+                    style="margin-bottom: 10px;"
+                ),
+
+                # Price Input for Houses (Hidden when Hotel is selected)
+                Div(
+                    Label("Price (For House Only):"), 
+                    Input(
+                        type="number",
+                        id="price",
+                        name="price",
+                        min=100,
+                        oninput="validatePrice()",
+                        style="width: 100%;"
+                    ),
+                    id="price_field",
+                    style="margin-bottom: 10px;"
+                ),
+
+                # Room Section for Hotels (Initially Hidden)
+                Div(
+                    Label("Add Rooms (For Hotels Only):"),
+                    Button(
+                        "Add New Room",
+                        type="button",
+                        onclick="addRoomInput()",
+                        id="add_room_button",
+                        style="display: none; margin-bottom: 10px;"
+                    ),
+                    Div(id="room_fields"),  # Container for dynamically added rooms
+                    id="room_section",
+                    style="display: none;"
+                )
+            ),
+
+            # Submit Button (Disabled initially for Hotels & Empty House Price)
+            Button(
+                "Confirm", 
+                type="submit",
+                id="confirm_button",
+                disabled=True,  # Confirm button starts disabled
+                style="""
+                    width: 100%;
+                    margin-top: 20px;
+                    background-color: #4CAF50; 
+                    color: white;
+                """
+            ),
+
+            method="post",
+            action=f"/create_accommodation_confirm/{host_id}",
+            style="padding: 20px;"
+        ),
+
+        # JavaScript to Hide/Show Fields, Validate Price, and Add Rooms Dynamically
+        Script("""
+            function toggleFields() {
+                var accomType = document.getElementById("accom_type").value;
+                var priceField = document.getElementById("price_field");
+                var roomSection = document.getElementById("room_section");
+                var addRoomButton = document.getElementById("add_room_button");
+                var confirmButton = document.getElementById("confirm_button");
+                var priceInput = document.getElementById("price");
+
+                if (accomType === "Hotel") {
+                    priceField.style.display = "none";   // Hide house price input
+                    priceInput.removeAttribute("required"); // Remove required attribute
+                    priceInput.value = "";  // Clear price field
+                    roomSection.style.display = "block"; // Show room fields
+                    addRoomButton.style.display = "inline-block"; // Show add room button
+                    confirmButton.disabled = document.getElementById("room_fields").children.length === 0;
+                } else {
+                    priceField.style.display = "block";  // Show house price input
+                    priceInput.setAttribute("required", "true"); // Require price for house
+                    roomSection.style.display = "none";  // Hide room fields
+                    addRoomButton.style.display = "none"; // Hide add room button
+                    validatePrice(); // Check if price is valid before enabling confirm
+                }
+            }
+
+            function validatePrice() {
+                var priceInput = document.getElementById("price").value;
+                var confirmButton = document.getElementById("confirm_button");
+
+                if (priceInput !== "" && parseInt(priceInput) >= 100) {
+                    confirmButton.disabled = false; // Enable if price is valid
+                } else {
+                    confirmButton.disabled = true; // Disable if price is empty or invalid
+                }
+            }
+
+            function addRoomInput() {
+                var roomContainer = document.getElementById("room_fields");
+                var roomIndex = roomContainer.children.length + 1;
+
+                var roomDiv = document.createElement("div");
+                roomDiv.innerHTML = `
+                    <label>Room Type ${roomIndex}:</label>
+                    <input type="text" name="room_type_${roomIndex}" required style="width: 100%;" />
+
+                    <label>Price for Room Type ${roomIndex}:</label>
+                    <input type="number" name="room_price_${roomIndex}" required min="100" style="width: 100%;" />
+
+                    <label>Number of Rooms for Type ${roomIndex}:</label>
+                    <input type="number" name="room_count_${roomIndex}" required min="1" style="width: 100%;" />
+
+                    <hr>
+                `;
+                roomContainer.appendChild(roomDiv);
+
+                // Enable confirm button once at least one room is added
+                document.getElementById("confirm_button").disabled = false;
+            }
+        """)
+    )
+
+
+
+@rt("/create_accommodation_confirm/{host_id}", methods=["POST"])
+async def post(
+    request: Request,
+    accom_type: str = Form(...),
+    name: str = Form(...),
+    address: str = Form(...),
+    info: str = Form(...),
+    price: Optional[int] = Form(None),
+    host_id: int = Form(...)
+):
+    form_data = await request.form()
+    control_system = request.app.state.control_system
+
+    # Extract additional room data dynamically
+    extra_fields = {
+        key: form_data[key] for key in form_data if key not in {"accom_type", "name", "address", "info", "price", "host_id"}
+    }
+
+
+    # Ensure price is handled correctly (default to None if it's a hotel)
+    if accom_type == "Hotel":
+        price = None
+    
+    print("Received Form Data:", host_id, accom_type, name, address, info, price, extra_fields)
+
+    status = control_system.create_accommodation(
+        host_id, accom_type, name, address, info, price, **extra_fields
+    )
+
+    return RedirectResponse("/", status_code=303)
+
+
 
 @app.on_event("startup")
 async def start_periodic_task():

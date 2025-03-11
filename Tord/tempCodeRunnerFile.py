@@ -1,1 +1,1 @@
-update_date
+room_type

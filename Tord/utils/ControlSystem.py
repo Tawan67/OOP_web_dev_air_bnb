@@ -2,6 +2,7 @@ from fasthtml.common import *
 from datetime import datetime, timedelta
 import json
 from fastapi import Request
+from typing import Optional  # For Optional[int] in form handling
 
 
 class ControlSystem:
@@ -1141,18 +1142,18 @@ class ControlSystem:
         self.search_host_by_id(new_host.get_user_id).add_accommodation(new_house)
         print(f'Accommodation : {new_house.get_acc_name},ID : {new_house.get_id}, Host : {new_host.get_user_name}')    
         
-        new_hotel = Hotel("test_hotel", "location_hotel", "description_hotel")
-        for pic in accom_pics:
-            new_hotel.add_accom_pics(pic)
-        self.add_accommodation(new_hotel)
-        new_hotel.add_host(new_host)
-        new_room = Room(room_id="1", room_floor=1, price=1000, hotel_address="location_hotel", hotel_name="test_hotel")
-        self.add_accommodation(new_room)
-        self.search_accom_by_id(new_hotel.get_id).add_room(new_room)
-        self.search_host_by_id(new_host.get_user_id).add_accommodation(new_hotel)
-        self.search_host_by_id(new_host.get_user_id).add_accommodation(new_room)
-        print(f'Accommodation : {new_hotel.get_acc_name},ID : {new_hotel.get_id}, Host : {new_host.get_user_name}')  
-        print(f'Accommodation : {new_room.get_acc_name},ID : {new_room.get_id}, Host : {new_host.get_user_name}')
+        # new_hotel = Hotel("test_hotel", "location_hotel", "description_hotel")
+        # for pic in accom_pics:
+        #     new_hotel.add_accom_pics(pic)
+        # self.add_accommodation(new_hotel)
+        # new_hotel.add_host(new_host)
+        # new_room = Room(room_id="1", room_floor=1, price=1000, hotel_address="location_hotel", hotel_name="test_hotel")
+        # self.add_accommodation(new_room)
+        # self.search_accom_by_id(new_hotel.get_id).add_room(new_room)
+        # self.search_host_by_id(new_host.get_user_id).add_accommodation(new_hotel)
+        # self.search_host_by_id(new_host.get_user_id).add_accommodation(new_room)
+        # print(f'Accommodation : {new_hotel.get_acc_name},ID : {new_hotel.get_id}, Host : {new_host.get_user_name}')  
+        # print(f'Accommodation : {new_room.get_acc_name},ID : {new_room.get_id}, Host : {new_host.get_user_name}')
 
     def make_booking_and_payment(self):
         from .Booking import Booking, BookedDate
@@ -2970,5 +2971,30 @@ class ControlSystem:
                     period.update_status(True)
                     break
                 
+        return "Success"
+    
+    def create_accommodation(self, host_id, accom_type, name, address, info, price = None, **kwargs):
+        host = self.search_host_by_id(int(host_id))
+
+    # Extract room details if it's a hotel
+        rooms = []
+        if accom_type == "Hotel":
+            room_index = 1
+            while f"room_type_{room_index}" in kwargs:
+                room_type = kwargs[f"room_type_{room_index}"]
+                room_price = int(kwargs[f"room_price_{room_index}"])
+                room_count = int(kwargs[f"room_count_{room_index}"])
+                rooms.append([room_type,room_price,room_count])
+                room_index += 1
+        print(rooms)
+        # Create accommodation based on type
+        if accom_type == "House":
+            a = host.create_house(name, address, info, price)
+            self.add_accommodation(a)
+
+        else:  # Hotel
+            a = host.create_hotel(name, address, info, rooms)  # Assuming create_hotel handles room lists
+            self.add_accommodation(a)
+        print(a)
         return "Success"
                     
