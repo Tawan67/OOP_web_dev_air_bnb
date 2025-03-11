@@ -1631,6 +1631,7 @@ async def post(req):
         return Div(H1("Error: Login Fail"), A(Button("Try Again"), href="/log_in"))
 
     req.session["user_id"] = str(user_id)
+
     return RedirectResponse("/", status_code=303)
 
 
@@ -1641,6 +1642,7 @@ def get(req):
 
 
 @rt("/price_summary/{user_id}/{accom_id}", methods=["POST"])
+@rt("/price_summary/{user_id}/{accom_id}", methods=["POST"])  # Dew
 async def post(user_id: int, accom_id: int, request: Request):
     user_id = request.session.get("user_id")
     print(f"accom id in price = {accom_id}")

@@ -151,6 +151,8 @@ class ControlSystem:
         # guest_amount = int(guest_amount)
         accom_id = int(accom_id)
         member = self.search_member_by_id(user_id)
+        if member == None:
+            member = self.search_host_by_id(user_id)
         accom = self.search_accom_by_id(accom_id)
         from .Booking import Booking
 
@@ -333,7 +335,7 @@ class ControlSystem:
         if isinstance(user_id, str):
             user_id = int(user_id)
         for host in self.__host_list:
-            if host.get_user_id == user_id:
+            if host.get_user_id == int(user_id):
                 return host
         return "Host Not Found"
 
@@ -514,15 +516,12 @@ class ControlSystem:
             if payment_method.get_bank_id == payment_method_id:
                 return payment_method
 
-    def search_payment_method_by_user_id(self, user_id):
+    def search_payment_method_by_user_id(self, user_id: int):
         result_list = []
         for payment_method in self.__payment_method_list:
-            if (
-                int(payment_method.get_owner.get_user_id)
-                if payment_method.get_owner
-                else None == int(user_id)
-            ):
-                result_list.append(payment_method)
+            if payment_method.get_owner != None:
+                if payment_method.get_owner.get_user_id == int(user_id):
+                    result_list.append(payment_method)
 
         return result_list
 
@@ -1340,7 +1339,7 @@ class ControlSystem:
         new_host = Host(
             name="Tro",
             email="saygex1@gmail.com",
-            password=12345,
+            password="12345",
             phone_num=1234567890,
             age=96,
         )
@@ -1406,7 +1405,15 @@ class ControlSystem:
         print(f"booked_date : {self.get_accommodation_list[0].get_booked_date_list}")
 
     def get_html_add_payment(self, user_id):
-        user_name = self.search_member_by_id(user_id).get_user_name
+        try:
+            user_name = self.search_member_by_id(int(user_id))
+            if user_name == None:
+                user_name = self.search_host_by_id(int(user_id)).get_user_name
+            else:
+                user_name = self.search_member_by_id(int(user_id)).get_user_name
+
+        except:
+            user_name = self.search_host_by_id(int(user_id)).get_user_name
         return Html(
             Title(f"Add Payment Method - {user_name}"),
             Div(
@@ -1482,6 +1489,8 @@ class ControlSystem:
                 P(f"Payment Method : {web_bank_id} not found"),
             )
         process_member = self.search_member_by_id(web_user_id)
+        if process_member is None:
+            process_member = self.search_host_by_id(web_user_id)
         if process_member is None:
             return Html(
                 P(f"User : {web_user_id} not found"),
@@ -3269,7 +3278,7 @@ class ControlSystem:
         booking_item = controlsystem.create_booking(
             user_id, check_in, check_out, accom_id, guests
         )
-        print(booking_item)
+        # print(booking_item)
         if isinstance(booking_item, str):
             return P(booking_item)
         booking_id = booking_item.get_booking_id
@@ -3304,10 +3313,14 @@ class ControlSystem:
 
     def get_member_id(self, name, email, phone_number, password):
         for i in self.__member_list:
-            text, bool_check = i.login(name, email, phone_number, password)
-            if bool_check == False:
-                for i in self.__host_list:
-                    text, bool_check = i.login(name, email, phone_number, password)
+            text, bool_check = i.login(name, email, password)
+            if bool_check:
+                return text
+        return text
+
+    def get_host_id(self, name, email, phone_num, password):
+        for i in self.__host_list:
+            text, bool_check = i.login(name, email, password)
             if bool_check:
                 return text
         return text

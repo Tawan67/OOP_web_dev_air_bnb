@@ -185,6 +185,7 @@ class Booking:
             f"Payment: {self.__payment}\n"
             f"Payment Method: {self.__pay_med}"
             f"Price : {self.__price}"
+            f"User ID: {self.__member.get_user_id}"
         )
         
     def set_amount(self, amount):
